@@ -1,0 +1,123 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZBB_FI050_C01</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZBB_FI050_C01</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZBB_RSKELETON_C01</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          ZBB_RSKELETON_C01</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*</font>
+
+" 참고용
+<font color ="#0000FF">*CLASS lcl_event_handler DEFINITION." FINAL.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*  PUBLIC SECTION.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*    DATA: gv_rowid TYPE i.</font>
+<font color ="#0000FF">**   instance [CLASS-METHODS : static]</font>
+<font color ="#0000FF">**   se24 cl_gui_alv_grid</font>
+<font color ="#0000FF">*    METHODS:</font>
+<font color ="#0000FF">*      handle_double_click</font>
+<font color ="#0000FF">*        FOR EVENT double_click OF cl_gui_alv_grid</font>
+<font color ="#0000FF">*        IMPORTING e_row e_column es_row_no,</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*      handle_hotspot_click</font>
+<font color ="#0000FF">*        FOR EVENT hotspot_click OF cl_gui_alv_grid</font>
+<font color ="#0000FF">*        IMPORTING e_row_id e_column_id es_row_no,</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*      handle_print_page_top</font>
+<font color ="#0000FF">*        FOR EVENT print_top_of_page OF cl_gui_alv_grid,</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*      handle_print_list_top</font>
+<font color ="#0000FF">*        FOR EVENT print_top_of_list OF cl_gui_alv_grid,</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">**        ------------------------------------------------------</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*      handle_on_toolbar</font>
+<font color ="#0000FF">*        FOR EVENT toolbar OF cl_gui_alv_grid</font>
+<font color ="#0000FF">*        IMPORTING e_object,</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*      on_user_command FOR EVENT user_command</font>
+<font color ="#0000FF">*        OF cl_gui_alv_grid</font>
+<font color ="#0000FF">*        IMPORTING e_ucomm,</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*     handle_context_menu</font>
+<font color ="#0000FF">*      FOR EVENT context_menu_request OF cl_gui_alv_grid</font>
+<font color ="#0000FF">*      IMPORTING e_object.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*   CLASS-METHODS handle_button_click</font>
+<font color ="#0000FF">*      FOR EVENT button_click OF cl_gui_alv_grid</font>
+<font color ="#0000FF">*      IMPORTING es_col_id es_row_no.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*   CLASS-METHODS handle_close</font>
+<font color ="#0000FF">*      FOR EVENT close OF cl_gui_dialogbox_container</font>
+<font color ="#0000FF">*      IMPORTING sender.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*ENDCLASS.</font>
+<font color ="#0000FF">**&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">**& Class (Implementation) lcl_event_handler</font>
+<font color ="#0000FF">**&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">**&</font>
+<font color ="#0000FF">**&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*CLASS lcl_event_handler IMPLEMENTATION.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*  METHOD handle_double_click.</font>
+<font color ="#0000FF">*    PERFORM double_click USING  e_row</font>
+<font color ="#0000FF">*                                e_column</font>
+<font color ="#0000FF">*                                es_row_no.</font>
+<font color ="#0000FF">*  ENDMETHOD.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*  METHOD handle_hotspot_click.</font>
+<font color ="#0000FF">*    PERFORM hotspot_click USING  e_row_id</font>
+<font color ="#0000FF">*                                e_column_id</font>
+<font color ="#0000FF">*                                es_row_no.</font>
+<font color ="#0000FF">*  ENDMETHOD.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*  METHOD handle_print_page_top.</font>
+<font color ="#0000FF">*    PERFORM print_top.</font>
+<font color ="#0000FF">*  ENDMETHOD.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*  METHOD handle_print_list_top.</font>
+<font color ="#0000FF">*    PERFORM print_list.</font>
+<font color ="#0000FF">*  ENDMETHOD.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*  METHOD handle_on_toolbar.</font>
+<font color ="#0000FF">*    PERFORM on_toolbar USING e_object.</font>
+<font color ="#0000FF">*  ENDMETHOD.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*  METHOD on_user_command.</font>
+<font color ="#0000FF">*    PERFORM on_user_command USING e_ucomm</font>
+<font color ="#0000FF">*                                  gv_rowid.</font>
+<font color ="#0000FF">*  ENDMETHOD.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*  METHOD handle_context_menu.</font>
+<font color ="#0000FF">*    PERFORM context_menu USING e_object</font>
+<font color ="#0000FF">*                      CHANGING gv_rowid.</font>
+<font color ="#0000FF">*  ENDMETHOD.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*   METHOD handle_button_click.</font>
+<font color ="#0000FF">*    PERFORM button_click USING es_col_id es_row_no.</font>
+<font color ="#0000FF">*  ENDMETHOD.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*  METHOD handle_close.</font>
+<font color ="#0000FF">*    sender-&gt;free( ). "최후로 만든 순서대로 free</font>
+<font color ="#0000FF">*    FREE: go_alv_booking, go_dialogbox.</font>
+<font color ="#0000FF">*  ENDMETHOD.</font>
+<font color ="#0000FF">*ENDCLASS.</font>
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

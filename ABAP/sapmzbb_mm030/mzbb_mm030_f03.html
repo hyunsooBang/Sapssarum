@@ -1,0 +1,604 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>MZBB_MM030_F03</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: MZBB_MM030_F03</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include MZBB_MM030_F03</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          MZBB_MM030_F03</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form get_data_view</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM get_data_view .
+  SELECT *
+    INTO CORRESPONDING FIELDS OF TABLE gt_mm080_v
+    FROM zbbt_mm080
+    ORDER BY outno outdate.
+ENDFORM.
+
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form make_data_view</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM make_data_view .
+  LOOP AT gt_mm080_v INTO gs_mm080_v.
+    "1. flag 변경
+      IF gs_mm080_v-outtype EQ '0'.
+        gs_mm080_v-outtypetxt = '공장 출고'.
+      ELSE.
+        gs_mm080_v-outtypetxt = '주문 출고'.
+      ENDIF.
+
+      IF gs_mm080_v-outflag EQ '0'.
+        gs_mm080_v-status = 2.
+      ELSE.
+        gs_mm080_v-status = 3.
+      ENDIF.
+
+      SELECT SINGLE * INTO gs_mm020
+      FROM zbbt_mm020
+      WHERE matno EQ gs_mm080_v-matno.
+
+      gs_mm080_v-matnm = gs_mm020-matnm.
+
+
+      MODIFY gt_mm080_v FROM gs_mm080_v TRANSPORTING matnm outtypetxt status.
+    ENDLOOP.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form create_container_view</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM create_container_view .
+  CREATE OBJECT go_container3
+    EXPORTING
+      container_name = 'MY_CONTROL3'
+    EXCEPTIONS
+      OTHERS         = 1.
+
+  IF sy-subrc &lt;&gt; 0.
+    MESSAGE a010(bc405_408).
+  ENDIF.
+
+  CREATE OBJECT go_split
+    EXPORTING
+      parent = go_container3
+      rows = 2                 " 몇 개의 가로(행) 분할 할 것인지 "
+      columns = 1.             " 몇 개의 세로(열) 분할 할 것인지 "
+
+
+  CALL METHOD go_split-&gt;get_container
+    EXPORTING
+      row       = 1
+      column    = 1
+    RECEIVING
+      container = go_cont3.
+
+
+  CALL METHOD go_split-&gt;get_container
+    EXPORTING
+      row       = 2
+      column    = 1
+    RECEIVING
+      container = go_cont4.
+
+
+  CREATE OBJECT go_alv_grid3
+    EXPORTING
+      i_parent = go_cont3.
+
+
+  CREATE OBJECT go_alv_grid4
+    EXPORTING
+      i_parent = go_cont4.
+
+
+
+  CALL METHOD go_split-&gt;set_row_height
+    EXPORTING
+      id = 1
+      height = 100.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_handler_view</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_handler_view .
+  CREATE OBJECT go_handler.
+  SET HANDLER : go_handler-&gt;handle_double_click FOR go_alv_grid3,
+                go_handler-&gt;handle_toolbar FOR go_alv_grid3,
+                go_handler-&gt;handle_user_command FOR go_alv_grid3.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_layout_view</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_layout_view .
+  gs_layout2-zebra      = 'X'. "행 얼룩무늬
+  gs_layout2-sel_mode    = 'A'.
+<font color ="#0000FF">*  gs_layout2-cwidth_opt  = 'X'. "열 너비 최적화</font>
+  gs_layout2-grid_title = '출고 내역'.
+  gs_layout2-excp_fname = 'STATUS'. "예외
+
+  gs_layout3-grid_title = '출고 상세 내역'.
+  gs_layout3-zebra      = 'X'. "행 얼룩무늬
+  gs_layout3-sel_mode    = 'A'.
+  gs_layout3-cwidth_opt  = 'X'. "열 너비 최적화
+
+
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">*CLEAR GS_SORT3.</font>
+<font color ="#0000FF">*  gs_sort3-fieldname = 'BATCHNO'.</font>
+<font color ="#0000FF">*  gs_sort3-spos = 1.</font>
+<font color ="#0000FF">*  APPEND gs_sort3 TO gt_sort3.</font>
+
+
+CLEAR GS_SORT3.
+
+  gs_sort3-fieldname = 'MATNM'.
+  gs_sort3-spos = 1.
+  gs_sort3-subtot = 'X'.
+  GS_SORT3-down = 'X'.
+  APPEND gs_sort3 TO gt_sort3.
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*CASE gs_fcat-fieldname.</font>
+<font color ="#0000FF">*  ,WHEN .</font>
+<font color ="#0000FF">*ENDCASE.</font>
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_fcat_view</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_fcat_view .
+  CLEAR gs_fcat.
+  gs_fcat-fieldname = 'OUTNO'.
+  gs_fcat-coltext = '출고 번호'.
+  gs_fcat-just    = 'L'.
+  gs_fcat-key = 'X'.
+  gs_fcat-intlen = 15.
+  gs_fcat-col_pos = 1.
+  APPEND gs_fcat TO gt_fcat_view1.
+
+  CLEAR gs_fcat.
+  gs_fcat-fieldname = 'OUTTYPETXT'.
+  gs_fcat-coltext = '출고 유형'.
+  gs_fcat-just    = 'C'.
+  gs_fcat-intlen = 10.
+  gs_fcat-col_pos = 2.
+  APPEND gs_fcat TO gt_fcat_view1.
+
+  CLEAR gs_fcat.
+  gs_fcat-fieldname = 'OUTDATE'.
+  gs_fcat-coltext = '출고 날짜'.
+  gs_fcat-just    = 'L'.
+  gs_fcat-key = 'X'.
+  gs_fcat-intlen = 15.
+  gs_fcat-col_pos = 3.
+  APPEND gs_fcat TO gt_fcat_view1.
+
+  CLEAR gs_fcat.
+  gs_fcat-fieldname = 'MATNO'.
+  gs_fcat-coltext = '자재 코드'.
+  gs_fcat-just    = 'L'.
+  gs_fcat-intlen = 15.
+  gs_fcat-col_pos = 4.
+  APPEND gs_fcat TO gt_fcat_view1.
+
+  CLEAR gs_fcat.
+  gs_fcat-fieldname = 'MATNM'.
+  gs_fcat-coltext = '제품명'.
+  gs_fcat-just    = 'L'.
+  gs_fcat-intlen = 15.
+  gs_fcat-col_pos = 5.
+  APPEND gs_fcat TO gt_fcat_view1.
+
+  CLEAR gs_fcat.
+  gs_fcat-fieldname = 'QUANTITY'.
+  gs_fcat-coltext = '수량'.
+  gs_fcat-decimals_o = '0'.
+  gs_fcat-do_sum = 'X'.
+  gs_fcat-just    = 'R'.
+  gs_fcat-outputlen = 10.
+  gs_fcat-col_pos = 6.
+  APPEND gs_fcat TO gt_fcat_view1.
+
+  CLEAR gs_fcat.
+  gs_fcat-fieldname = 'UNIT'.
+  gs_fcat-coltext = '단위'.
+  gs_fcat-just    = 'L'.
+  gs_fcat-outputlen = 5.
+  gs_fcat-col_pos = 7.
+  APPEND gs_fcat TO gt_fcat_view1.
+
+  CLEAR gs_fcat.
+  gs_fcat-fieldname = 'PORDERNO'.
+  gs_fcat-coltext = '생산오더 번호'.
+  gs_fcat-just    = 'C'.
+  gs_fcat-intlen = 20.
+  gs_fcat-col_pos = 8.
+  APPEND gs_fcat TO gt_fcat_view1.
+
+  CLEAR gs_fcat.
+  gs_fcat-fieldname = 'ORDERNO'.
+  gs_fcat-coltext = '주문 번호'.
+  gs_fcat-just    = 'C'.
+  gs_fcat-intlen = 20.
+  gs_fcat-col_pos = 9.
+  APPEND gs_fcat TO gt_fcat_view1.
+
+  CLEAR gs_fcat.
+  gs_fcat-fieldname = 'STATUS'.
+  gs_fcat-coltext = '출고 상태'.
+  gs_fcat-just    = 'C'.
+  APPEND gs_fcat TO gt_fcat_view1.
+
+ CLEAR gs_fcat.
+  gs_fcat-fieldname = 'OUTTYPE'.
+  gs_fcat-no_out = 'X'.
+  APPEND gs_fcat TO gt_fcat_view1.
+
+   CLEAR gs_fcat.
+  gs_fcat-fieldname = 'STORNO'.
+  gs_fcat-no_out = 'X'.
+  APPEND gs_fcat TO gt_fcat_view1.
+
+
+  CLEAR gs_fcat.
+  gs_fcat-fieldname = 'OUTFLAG'.
+  gs_fcat-no_out = 'X'.
+  APPEND gs_fcat TO gt_fcat_view1.
+
+CLEAR gs_fcat.
+  gs_fcat-fieldname = 'CREATE_DT'.
+  gs_fcat-no_out = 'X'.
+  APPEND gs_fcat TO gt_fcat_view1.
+
+  CLEAR gs_fcat.
+  gs_fcat-fieldname = 'CREATE_TM'.
+  gs_fcat-no_out = 'X'.
+  APPEND gs_fcat TO gt_fcat_view1.
+
+  CLEAR gs_fcat.
+  gs_fcat-fieldname = 'CUSER'.
+  gs_fcat-no_out = 'X'.
+  APPEND gs_fcat TO gt_fcat_view1.
+
+  CLEAR gs_fcat.
+  gs_fcat-fieldname = 'UPDATE_DT'.
+  gs_fcat-no_out = 'X'.
+  APPEND gs_fcat TO gt_fcat_view1.
+
+  CLEAR gs_fcat.
+  gs_fcat-fieldname = 'UPDATE_TM'.
+  gs_fcat-no_out = 'X'.
+  APPEND gs_fcat TO gt_fcat_view1.
+
+  CLEAR gs_fcat.
+  gs_fcat-fieldname = 'UUSER'.
+  gs_fcat-no_out = 'X'.
+  APPEND gs_fcat TO gt_fcat_view1.
+
+
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_sorting</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_sorting .
+
+<font color ="#0000FF">*      gs_sort-fieldname = 'ORDERNO'.</font>
+<font color ="#0000FF">*      gs_sort-spos      = 1.</font>
+<font color ="#0000FF">*      APPEND gs_sort TO gt_sort.</font>
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form display_grid_view</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM display_grid_view .
+  IF go_alv_grid3 IS NOT INITIAL.
+    CALL METHOD go_alv_grid3-&gt;set_table_for_first_display
+    EXPORTING
+      i_structure_name = 'ZBBT_MM080'
+      i_save           = 'A'
+      is_layout        = gs_layout2
+    CHANGING
+      it_fieldcatalog  = gt_fcat_view1
+      it_outtab        = gt_mm080_v
+<font color ="#0000FF">*      it_sort          = gt_sort</font>
+      it_filter        = gt_filter
+    EXCEPTIONS
+      OTHERS           = 1.
+  IF sy-subrc &lt;&gt; 0.
+    MESSAGE a012(bc405_408).
+  ENDIF.
+  ENDIF.
+
+
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form user_command_0130</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM user_command_0130 .
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form double_click</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      --&gt; E_ROW</font>
+<font color ="#0000FF">*&      --&gt; E_COLUMN</font>
+<font color ="#0000FF">*&      --&gt; ES_ROW_NO</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM double_click  USING    pv_row TYPE lvc_s_row
+                            pv_column
+                            pv_row_no TYPE lvc_s_roid.
+  CLEAR: gs_mm080_v, gs_mm085, gt_fcat_view2.
+  READ TABLE gt_mm080_v INTO gs_mm080_v INDEX pv_row_no-row_id.
+
+  SELECT *
+    INTO CORRESPONDING FIELDS OF TABLE gt_mm085_v
+    FROM zbbt_mm085
+    WHERE outno = gs_mm080_v-outno
+    ORDER BY batchno ASCENDING.
+
+  LOOP AT gt_mm085_v INTO gs_mm085_v.
+    DATA: lv_90 TYPE zbbt_mm090. "pp bom item
+
+    SELECT SINGLE * INTO lv_90
+      FROM zbbt_mm090
+      WHERE batchno EQ gs_mm085_v-batchno.
+
+      SELECT SINGLE * INTO gs_mm020
+      FROM zbbt_mm020
+      WHERE matno EQ lv_90-matno.
+
+      gs_mm085_v-matnm = gs_mm020-matnm.
+      MODIFY gt_mm085_v FROM gs_mm085_v TRANSPORTING matnm.
+   ENDLOOP.
+  PERFORM set_fcat_split.
+  PERFORM display_grid_split.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form toolbar</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      --&gt; E_OBJECT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM toolbar  USING pc_object TYPE REF TO cl_alv_event_toolbar_set.
+  DATA: ls_button TYPE stb_button,
+        ls_object TYPE REF TO cl_alv_event_toolbar_set.
+
+  ls_object = pc_object.
+
+<font color ="#0000FF">*   Separator</font>
+  ls_button-butn_type = 3.
+  INSERT ls_button INTO TABLE ls_object-&gt;mt_toolbar.
+
+  CLEAR ls_button.
+  ls_button-function  = 'refresh'. "fc code
+  ls_button-icon      = icon_select_all.    "icon
+  ls_button-text      = '전체'.
+  ls_button-butn_type = 0.
+  INSERT ls_button INTO TABLE ls_object-&gt;mt_toolbar. "ls_object안 toolbar 테이블에 저장
+
+  CLEAR ls_button.
+  ls_button-function  = 'fc_p'. "fc code
+  ls_button-icon      = icon_tools.    "icon
+  ls_button-text      = '생산출고내역'.
+  ls_button-butn_type = 0.
+  INSERT ls_button INTO TABLE ls_object-&gt;mt_toolbar. "ls_object안 toolbar 테이블에 저장
+
+  CLEAR ls_button.
+  ls_button-function  = 'fc_o'.
+  ls_button-text      = '주문출고내역'.
+  ls_button-icon      = icon_transport.    "icon
+  ls_button-butn_type = 0.
+  INSERT ls_button INTO TABLE ls_object-&gt;mt_toolbar.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form user_command</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      --&gt; E_UCOMM</font>
+<font color ="#0000FF">*&      --&gt; GV_ROW</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM user_command  USING    p_ucomm TYPE sy-ucomm
+                            pv_row TYPE i.
+CASE p_ucomm.
+    WHEN 'refresh'.
+      CLEAR gt_filter.
+
+    WHEN 'fc_p'.
+      CLEAR: gs_filter, gt_filter.
+      gs_filter-fieldname = 'OUTTYPE'.
+      gs_filter-sign = 'I'.
+      gs_filter-option = 'EQ'.
+      gs_filter-low = '0'.
+      APPEND gs_filter TO gt_filter.
+
+    WHEN 'fc_o'.
+      CLEAR: gs_filter, gt_filter.
+      gs_filter-fieldname = 'OUTTYPE'.
+      gs_filter-sign = 'I'.
+      gs_filter-option = 'EQ'.
+      gs_filter-low = '1'.
+      APPEND gs_filter TO gt_filter.
+
+       gs_sort-fieldname = 'ORDERNO'.
+        gs_sort-spos      = 1.
+        APPEND gs_sort TO gt_sort.
+<font color ="#0000FF">*      PERFORM set_sorting.</font>
+
+  ENDCASE.
+  IF gt_fcat_view2 is not INITIAL.
+      CLEAR gt_mm085_v.
+      CALL METHOD go_alv_grid4-&gt;refresh_table_display( ).
+      CALL METHOD go_split-&gt;set_row_height
+       EXPORTING
+         id = 1
+         height = 100.
+    ENDIF.
+  PERFORM display_grid_view.
+<font color ="#0000FF">*  CLEAR: gt_mm085_v.</font>
+<font color ="#0000FF">*  CALL METHOD go_alv_grid4-&gt;refresh_table_display( ).</font>
+<font color ="#0000FF">*  PERFORM display_grid_split.</font>
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form display_grid_split</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM display_grid_split .
+
+   CALL METHOD go_split-&gt;set_row_height
+    EXPORTING
+      id = 1
+      height = 50.
+
+  IF go_alv_grid4 IS NOT INITIAL.
+    CALL METHOD go_alv_grid4-&gt;set_table_for_first_display
+    EXPORTING
+<font color ="#0000FF">*      i_structure_name = 'ZBBT_MM085'</font>
+      i_save           = 'A'
+      is_layout        = gs_layout3
+    CHANGING
+      it_fieldcatalog  = gt_fcat_view2
+      it_outtab        = gt_mm085_v
+     it_sort          = gt_sort3
+    EXCEPTIONS
+      OTHERS           = 1.
+
+      IF sy-subrc &lt;&gt; 0.
+      MESSAGE a012(bc405_408).
+      ENDIF.
+  ENDIF.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_fcat_split</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_fcat_split .
+  CLEAR gs_fcat.
+  gs_fcat-fieldname = 'OUTNO'.
+  gs_fcat-coltext = '출고 번호'.
+  gs_fcat-ref_table = 'ZBBT_MM085'.
+  gs_fcat-ref_field = 'OUTNO'.
+  gs_fcat-just    = 'L'.
+  gs_fcat-col_pos = 1.
+  gs_fcat-outputlen = 20.
+  gs_fcat-intlen = 20.
+  APPEND gs_fcat TO gt_fcat_view2.
+
+  CLEAR gs_fcat.
+  gs_fcat-fieldname = 'BATCHNO'.
+  gs_fcat-coltext = '배치 번호'.
+  gs_fcat-ref_table = 'ZBBT_MM085'.
+  gs_fcat-ref_field = 'BATCHNO'.
+  gs_fcat-col_pos = 2.
+  gs_fcat-just    = 'L'.
+  gs_fcat-outputlen = 20.
+  gs_fcat-intlen = 20.
+  APPEND gs_fcat TO gt_fcat_view2.
+
+  CLEAR gs_fcat.
+  gs_fcat-fieldname = 'MATNM'.
+  gs_fcat-coltext = '원재료명'.
+  gs_fcat-ref_table = 'ZBBT_MM020'.
+  gs_fcat-ref_field = 'MATNM'.
+  gs_fcat-just    = 'L'.
+  gs_fcat-outputlen = 20.
+  gs_fcat-intlen = 20.
+  gs_fcat-col_pos = 3.
+  APPEND gs_fcat TO gt_fcat_view2.
+
+  CLEAR gs_fcat.
+  gs_fcat-fieldname = 'QUANTITY'.
+  gs_fcat-coltext = '수량'.
+<font color ="#0000FF">*  gs_fcat-ref_table/ = 'ZBBT_MM085'.</font>
+<font color ="#0000FF">*  gs_fcat-ref_field = 'QUANTITY'.</font>
+  gs_fcat-decimals_o = '0'.
+  gs_fcat-just    = 'R'.
+  gs_fcat-outputlen = 10.
+  gs_fcat-col_pos = 4.
+  gs_fcat-do_sum = 'X'.
+  APPEND gs_fcat TO gt_fcat_view2.
+
+  CLEAR gs_fcat.
+  gs_fcat-fieldname = 'UNIT'.
+  gs_fcat-coltext = '단위'.
+  gs_fcat-ref_table = 'ZBBT_MM085'.
+  gs_fcat-ref_field = 'UNIT'.
+  gs_fcat-just    = 'L'.
+  gs_fcat-outputlen = 5.
+  gs_fcat-col_pos = 5.
+  APPEND gs_fcat TO gt_fcat_view2.
+ENDFORM.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

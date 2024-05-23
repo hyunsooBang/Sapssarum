@@ -1,0 +1,108 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>MZBB_FI030_TOP</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: MZBB_FI030_TOP</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include SAPMZBB_MM060_TOP</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          SAPMZBB_MM060_TOP</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+PROGRAM sapmzbb_fi030 MESSAGE-ID zbb_msg.
+
+<font color ="#0000FF">*--------------------------------------------------------------------*</font>
+<font color ="#0000FF">* SCREEN 요소</font>
+<font color ="#0000FF">*--------------------------------------------------------------------*</font>
+
+TABLES : sdyn_conn.
+DATA : ok_code  TYPE sy-ucomm,
+       ok_code2 TYPE sy-ucomm,
+       ok_code3 TYPE sy-ucomm.
+
+DATA : go_cont TYPE REF TO cl_gui_custom_container,
+       go_grid TYPE REF TO cl_gui_alv_grid.
+
+DATA : gt_field_cat TYPE lvc_t_fcat,
+       gs_field_cat TYPE lvc_s_fcat.
+
+DATA : gs_layout TYPE lvc_s_layo.
+
+DATA : gs_row  TYPE lvc_s_row,
+       gt_rows TYPE lvc_t_row.
+
+DATA : gt_exclude_func TYPE ui_functions.
+
+DATA : gv_input.
+
+DATA : pa_file LIKE rlgrap-filename VALUE 'C:\'.
+
+<font color ="#0000FF">*--------------------------------------------------------------------*</font>
+<font color ="#0000FF">* ABAP 변수</font>
+<font color ="#0000FF">*--------------------------------------------------------------------*</font>
+TABLES : zbbt_mm030, ZBBT_FI040.   "거래처 마스터
+
+TYPES : BEGIN OF zty_line.
+          include structure <a href ="zbbt_fi040/dictionary-zbbt_fi040.html">zbbt_fi040</a>.
+TYPES :   light     TYPE c LENGTH 1,    "신호등
+          color     TYPE c LENGTH 4,    "line color
+<font color ="#0000FF">*          banknmtxt TYPE dd07t-ddtext,   "은행명</font>
+        END OF zty_line.
+
+DATA : gs_fi040 TYPE zty_line,
+       gt_fi040 TYPE TABLE OF zty_line.
+
+DATA : gt_data TYPE TABLE OF zbbt_fi040,
+       gs_data TYPE zbbt_fi040.
+
+DATA : gt_del TYPE TABLE OF zty_line,
+       gs_del TYPE zbbt_fi040.
+
+CLASS : lcl_event_handler DEFINITION DEFERRED.
+DATA : go_handler TYPE REF TO LCL_event_handler. "참조변수
+
+
+DATA : gs_line TYPE zbbt_fi040,
+       gt_line TYPE TABLE OF zbbt_fi040.
+
+DATA : gv_ucomm TYPE sy-ucomm.
+
+<font color ="#0000FF">*DATA : gv_card_txt      TYPE dd07t-ddtext.   "은행명</font>
+
+<font color ="#0000FF">*--------------------------------------------------------------------*</font>
+<font color ="#0000FF">* Excel 변수</font>
+<font color ="#0000FF">*--------------------------------------------------------------------*</font>
+<font color ="#0000FF">*- OLE object</font>
+DATA: go_application TYPE ole2_object,
+      go_books       TYPE ole2_object,
+      go_wbook       TYPE ole2_object,
+      go_book        TYPE ole2_object,
+      go_sheets      TYPE ole2_object,
+      go_sheet       TYPE ole2_object,
+      go_cells       TYPE ole2_object,
+      go_cell        TYPE ole2_object,
+      go_range       TYPE ole2_object,
+      go_font        TYPE ole2_object,
+      go_row         TYPE ole2_object,
+      gv_path        TYPE string,
+      gv_directory   TYPE string,
+      gv_num         TYPE i.
+
+DATA : BEGIN OF gs_excel,
+         cardcd type zbbt_fi040-cardcd,
+         cardnm type zbbt_fi040-cardnm,
+         cardadd type zbbt_fi040-cardadd,
+       END OF gs_excel.
+
+DATA : gt_excel LIKE TABLE OF gs_excel.
+
+FIELD-SYMBOLS : &lt;fs&gt; TYPE any.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

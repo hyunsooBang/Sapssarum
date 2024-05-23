@@ -1,0 +1,54 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZBB_FI060_O01</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZBB_FI060_O01</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZBB_FI060_C3_O01</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          ZBB_FI060_C3_O01</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  PBO  OUTPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       process before output</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE pbo OUTPUT.
+
+  SET PF-STATUS 'MAIN100'.
+  SET TITLEBAR 'MAINTITLE'.
+
+  IF tree1 IS INITIAL.
+    PERFORM init_tree.
+
+    CALL METHOD cl_gui_cfw=&gt;flush
+      EXCEPTIONS
+        cntl_system_error = 1
+        cntl_error        = 2.
+    IF sy-subrc NE 0.
+        MESSAGE '일치하는 데이터가 없습니다.' TYPE 'S' DISPLAY LIKE 'E'. "type(1) + id(3)
+        ROLLBACK WORK.
+        LEAVE TO SCREEN 0.
+<font color ="#0000FF">*      PERFORM check_data.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">**      CALL FUNCTION 'POPUP_TO_INFORM'</font>
+<font color ="#0000FF">*        EXPORTING</font>
+<font color ="#0000FF">*          titel = TEXT-801</font>
+<font color ="#0000FF">*          txt1  = TEXT-802</font>
+<font color ="#0000FF">*          txt2  = TEXT-803</font>
+<font color ="#0000FF">*          txt3  = TEXT-804.</font>
+    ENDIF.
+  ENDIF.
+
+ENDMODULE.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

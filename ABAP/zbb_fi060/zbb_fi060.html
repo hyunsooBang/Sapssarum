@@ -1,0 +1,114 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZBB_FI060</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZBB_FI060</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  [SAP ssarum-FI] 재무상태표 조회</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Module Pool ZBB_FI060</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& PROGRAM ID  : ZBB_FI060</font>
+<font color ="#0000FF">*& DESCRIPTION : 재무상태표 조회</font>
+<font color ="#0000FF">*& MODULE      : FI</font>
+<font color ="#0000FF">*& DEVELOPER   : ACA2-15 (방현수)</font>
+<font color ="#0000FF">*& CREATED DATE: 2024.04.23</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& MODIFIED HISTORY :</font>
+<font color ="#0000FF">*& DEVELOPER       DATE             DESCRIPTION</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+<font color ="#0000FF">*  ACA2-15        2024.04.24         신규 개발</font>
+<font color ="#0000FF">*  ACA2-15        2024.04.25         거의 완성</font>
+<font color ="#0000FF">*  ACA2-15        2024.04.26         타이틀 달기, 화면 제어</font>
+
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+REPORT  zbb_fi060 MESSAGE-ID zbb_msg.
+
+include <a href ="zbb_fi060_top.html">zbb_fi060_top</a>.
+include <a href ="zbb_fi060_c01.html">zbb_fi060_c01</a>.
+
+include <a href ="zbb_fi060_o01.html">zbb_fi060_o01</a>.
+include <a href ="zbb_fi060_i01.html">zbb_fi060_i01</a>.
+include <a href ="zbb_fi060_f01.html">zbb_fi060_f01</a>.
+
+<font color ="#0000FF">*##################################################################</font>
+AT SELECTION-SCREEN ON pa_co.
+  PERFORM check_co.
+AT SELECTION-SCREEN ON pa_fi.
+  PERFORM check_fi.
+
+
+START-OF-SELECTION.
+
+end-of-selection.
+
+  PERFORM set_title.
+  CALL SCREEN 100.
+
+<font color ="#0000FF">*GUI Texts</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* MAINTITLE --&gt; [SAP ssarum-FI] 재무상태표 조회</font>
+<font color ="#0000FF">* TITLE --&gt; [SAP ssarum-FI] 재무상태표</font>
+<font color ="#0000FF">* MAINTITLE --&gt; [SAP ssarum-FI] 재무상태표</font>
+<font color ="#0000FF">* TITLE --&gt; [SAP ssarum-FI] 재무상태표</font>
+
+<font color ="#0000FF">*Text elements</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* 050 Flights</font>
+<font color ="#0000FF">* 100 ERROR</font>
+<font color ="#0000FF">* 300 Total/Month/Airline carrier/Date</font>
+<font color ="#0000FF">* 400 Flights in a Month</font>
+<font color ="#0000FF">* 701 January</font>
+<font color ="#0000FF">* 702 February</font>
+<font color ="#0000FF">* 703 March</font>
+<font color ="#0000FF">* 704 April</font>
+<font color ="#0000FF">* 705 May</font>
+<font color ="#0000FF">* 706 June</font>
+<font color ="#0000FF">* 707 July</font>
+<font color ="#0000FF">* 708 August</font>
+<font color ="#0000FF">* 709 September</font>
+<font color ="#0000FF">* 710 October</font>
+<font color ="#0000FF">* 711 November</font>
+<font color ="#0000FF">* 712 December</font>
+<font color ="#0000FF">* 801 Error in automation queue</font>
+<font color ="#0000FF">* 802 Internal Error:</font>
+<font color ="#0000FF">* 803 A method in the automation queue</font>
+<font color ="#0000FF">* 804 caused a failure.</font>
+<font color ="#0000FF">* 900 About BCALV_TREE_05...</font>
+<font color ="#0000FF">* 901 Information</font>
+<font color ="#0000FF">* 902 Help</font>
+<font color ="#0000FF">* 903 Nonsense</font>
+<font color ="#0000FF">* 904 Version 1.0</font>
+<font color ="#0000FF">* T01 조회 조건</font>
+
+
+<font color ="#0000FF">*Selection texts</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* PA_CO         회사코드</font>
+<font color ="#0000FF">* PA_FI         회계연도</font>
+
+
+<font color ="#0000FF">*Messages</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">* Message class: 00</font>
+<font color ="#0000FF">*208   &</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">* Message class: 0K</font>
+<font color ="#0000FF">*000   & & & &</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">* Message class: Hard coded</font>
+<font color ="#0000FF">*   일치하는 데이터가 없습니다.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">* Message class: ZBB_MSG</font>
+<font color ="#0000FF">*105   유효한 & 데이터 값을 입력해주세요.</font>
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>
