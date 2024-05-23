@@ -1,0 +1,412 @@
+<mvc:View controllerName="cart.controller.Cart"
+    xmlns:mvc="sap.ui.core.mvc" displayBlock="true"
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+    xmlns:tnt="sap.tnt"
+    xmlns:f="sap.f"
+	xmlns:form="sap.ui.layout.form"
+	xmlns:layout="sap.ui.layout">
+    <NavContainer id="navContainer" > 
+		<pages >
+			<f:DynamicPage
+				id="dynamicPage"
+				toggleHeaderOnTitleClick="{/titleClickable}"
+				stickySubheaderProvider="ShoppingCartWizard"
+				class="sapUiNoContentPadding"
+				showFooter="true"
+                
+                
+                >
+				<!-- DynamicPage Title -->
+                
+				<f:title>
+					<f:DynamicPageTitle>
+						<f:heading>
+							<Title text="{data>/name}님의 장바구니"/>
+						</f:heading>
+                        <f:actions>
+                            <Button text = "돌아가기" icon="sap-icon://nav-back" press="onNavBack" tooltip="Back"/>
+                        </f:actions>
+					</f:DynamicPageTitle>
+                    
+				</f:title>
+				<!-- DynamicPage Header -->
+				<f:content>
+					<Wizard id="ShoppingCartWizard"
+					        class="sapUiResponsivePadding--header sapUiResponsivePadding--content"
+					        complete="completedHandler"
+					        height="auto"
+					        enableBranching="true">
+						<WizardStep
+							id="ContentsStep"
+							nextStep="PaymentTypeStep"
+							title="장바구니 상품 확인"
+							icon="sap-icon://cart">
+							<ObjectHeader
+								title="총 가격"
+								titleLevel="H1"
+								number="{data>/ProductsTotalPrice}"
+								numberUnit="KRW">
+								<attributes>
+									<ObjectAttribute text="{data>/name}님의 장바구니에 담긴 전체 상품 목록입니다."/>
+								</attributes>
+							</ObjectHeader>
+							<List mode="Delete"
+							      items="{cart>/}"
+							      enableBusyIndicator="true"
+							      delete="handleDelete"
+							      headerText="상품">
+                                  <!-- <VBox> -->
+                                  <!-- <StandardListItem
+									title="{cart>Matnm}"
+									type="Active"
+									description="{cart>Mattxt}"
+									icon="/images/그림1.png"
+									info="{cart>TotalPrice} KRW"
+									iconDensityAware="false"
+									iconInset="false"/> -->
+								<CustomListItem>
+									<HBox justifyContent="SpaceBetween" alignItems="Center">
+										<!-- 이미지 추가 -->
+										<HBox justifyContent="SpaceBetween" alignItems="Center">
+											<FlexBox width="20px" />
+											<Image src="/images/홍삼캔디.jpg" width="60px" height="60px" />
+											<FlexBox width="20px" />
+										<VBox>
+											<Title text="{cart>Matnm}" titleStyle="H4" />
+											<FlexBox height="10px" />
+											<Text text="{cart>Mattxt}" />
+											<FlexBox height="10px" />
+											<Text text="{cart>TotalPrice} KRW" />
+											<FlexBox height="10px" />
+										</VBox> 
+										</HBox>
+										
+										<HBox alignItems="Center" justifyContent="End">
+											<Button text="-" press="onDecreaseQuantity" />
+											<FlexBox width="10px" />
+											<Text text="{cart>Quantity}" />
+											<FlexBox width="10px" />
+											<Button text="+" press="onIncreaseQuantity" />
+										</HBox>
+									</HBox>
+								</CustomListItem>
+                            <!-- </VBox> -->
+							</List>
+						</WizardStep>
+						<WizardStep
+							id="PaymentTypeStep"
+							title="결제 타입 선택"
+							subsequentSteps="CreditCardStep, BankAccountStep, CashOnDeliveryStep"
+							complete="goToPaymentStep"
+							icon="sap-icon://money-bills">
+							<Text class="sapUiSmallMarginBottom"
+							      text="쌉싸름은 모든 주요 신용 카드를 받습니다.
+                                  계좌 이체의 경우 결제 확인 시까지 시간이 소요될 수 있습니다."/>
+							<HBox
+								alignItems="Center"
+								justifyContent="Center"
+								width="100%">
+								<SegmentedButton selectionChange="setPaymentMethod" id="paymentMethodSelection"
+								                 selectedKey="{data>/selectedPayment}">
+									<items>
+										<SegmentedButtonItem key="Credit Card" icon="sap-icon://credit-card"
+										                     text="카드 결제"/>
+										<SegmentedButtonItem key="Bank Transfer" icon="sap-icon://official-service"
+										                     text="계좌 이체"/>
+										<SegmentedButtonItem key="Kakao Pay" icon="sap-icon://money-bills"
+										                     text="카카오페이"/>
+									</items>
+								</SegmentedButton>
+							</HBox>
+						</WizardStep>
+						<WizardStep
+							id="CreditCardStep"
+							title="신용카드 정보 입력"
+							nextStep="BillingStep"
+							activate="checkCreditCardStep"
+							icon="sap-icon://credit-card">
+							<MessageStrip text="카드 번호, CVC 번호는 필수 입력 항목입니다."/>
+							<form:SimpleForm
+								editable="true"
+								layout="ColumnLayout">
+								<Label text="카드 이름"/>
+								<Input value="{data>/CardName}"/>
+								<Label text="카드 번호"  required="true" />
+								<Input value="{data>/CardNumber}" valueLiveUpdate="true" liveChange="checkCreditCardStep"/>
+								<Label text="CVC 번호" required="true"/>
+								<Input value="{data>/CardCode}"  valueLiveUpdate="true" liveChange="checkCreditCardStep"/>
+								<Label text="만료 일자" />
+								<DatePicker value="{data>/CardExpire}"/>
+							</form:SimpleForm>
+						</WizardStep>
+						<WizardStep
+							id="BankAccountStep"
+							title="계좌이체 정보 확인"
+							nextStep="BillingStep"
+							icon="sap-icon://official-service">
+							<Panel>
+								<headerToolbar>
+									<Toolbar height="0rem">
+										<Title text=""/>
+									</Toolbar>
+								</headerToolbar>
+								<layout:Grid
+									defaultSpan="L6 M6 S10"
+									hSpacing="2">
+									<Label text="Beneficiary Bank" design="Bold"/>
+									<Label text="CITY BANK, SINGAPORE BRANCH"/>
+									<Label text="Beneficiary Account Number" design="Bold"/>
+									<Label text="06110702027218"/>
+									<Label text="Bank Phone Number" design="Bold"/>
+									<Label text="+65-6224-2622"/>
+									<Label text="Bank Email Address" design="Bold"/>
+									<Label text="customerservice@citybank.com"/>
+								</layout:Grid>
+							</Panel>
+						</WizardStep>
+						<WizardStep
+							id="CashOnDeliveryStep"
+							title="카카오페이 결제"
+							nextStep="BillingStep"
+							activate="checkCashOnDeliveryStep"
+							icon="sap-icon://money-bills">
+							<MessageStrip text="Enter at least 3 symbols for first name."/>
+							<form:SimpleForm
+								editable="true"
+								layout="ColumnLayout">
+								<Label text="이름" required="true"/>
+								<Input value="{data>/CashOnDelivery/FirstName}" liveChange="checkCashOnDeliveryStep"
+								       valueLiveUpdate="true"/>
+								<Label text="성"/>
+								<Input value="{data>/CashOnDelivery/LastName}"/>
+								<Label text="휴대폰 번호"/>
+								<Input value="{data>/CashOnDelivery/Phone Number}"/>
+								<Label text="이메일"/>
+								<Input value="{data>/CashOnDelivery/Email}"/>
+							</form:SimpleForm>
+						</WizardStep>
+						<WizardStep
+							id="BillingStep"
+							title="배송지 입력"
+							subsequentSteps="DeliveryAddressStep, DeliveryTypeStep"
+							activate="checkBillingStep"
+							complete="billingAddressComplete"
+							icon="sap-icon://sales-quote">
+							<MessageStrip text="주소는 필수 입력값입니다."/>
+							<form:SimpleForm
+								editable="true"
+								layout="ColumnLayout">
+								<Label text="기본 배송지와 일치함"/>
+								<CheckBox id ='checkBoxId'
+									selected="{/differentDeliveryAddress}"
+									select="setDifferentDeliveryAddress"/>
+								<Label text="주소" required="true"/>
+								<Input value="{cust>/address}" liveChange="checkBillingStep"
+								       valueLiveUpdate="true"/>
+								<Label text="상세 주소" />
+								<Input value="{cust>/detailAddress}" liveChange="checkBillingStep"
+								       valueLiveUpdate="true"/>
+								<Label text="전화번호" />
+								<Input value="{cust>/phoneNumber}" liveChange="checkBillingStep"
+								       valueLiveUpdate="true"/>
+								<Label text="수취인명" />
+								<Input value="{cust>/recipientName}" liveChange="checkBillingStep"
+								       valueLiveUpdate="true"/>
+								<Label text="배송 메모" required="false"/>
+								<TextArea rows="8" value="{cust>/memo}"/>
+							</form:SimpleForm>
+						</WizardStep>
+						<WizardStep
+							id="DeliveryAddressStep"
+							title="배송지 입력"
+							nextStep="DeliveryTypeStep"
+							icon="sap-icon://sales-quote">
+							<form:SimpleForm
+								editable="true"
+								layout="ColumnLayout">
+								<Label text="주소"/>
+								<Input/>
+								<Label text="상세 주소"/>
+								<Input/>
+								<Label text="우편 번호"/>
+								<Input/>
+								<Label text="수취인명"/>
+								<Input/>
+								<Label text="배송 메모"/>
+								<TextArea rows="8"/>
+							</form:SimpleForm>
+						</WizardStep>
+						<WizardStep
+                            
+							id="DeliveryTypeStep"
+							title="주문 타입 확인"
+							icon="sap-icon://insurance-car">
+                            <VBox >
+                                <Text class="sapUiSmallMarginBottom"
+							      text ="구독 제품 구매 시 30% 할인이 적용됩니다."/>
+                                  <Link text = '구독상품 구경하러 가기' />
+                            </VBox>
+							
+							<!-- <HBox
+								alignItems="Center"
+								justifyContent="Center"
+								width="100%">
+								<SegmentedButton selectedKey="{/selectedDeliveryMethod}" >
+									<items>
+										<SegmentedButtonItem key="Standard Delivery" text="일반상품 주문"/>
+										<SegmentedButtonItem key="Express Delivery" text="구독상품 주문"/>
+									</items>
+								</SegmentedButton>
+							</HBox> -->
+						</WizardStep>
+					</Wizard>
+				</f:content>
+			</f:DynamicPage>
+			<Page id="wizardBranchingReviewPage" showHeader="false">
+				<content>
+					<form:SimpleForm
+						title="1. 주문 상품 목록"
+						minWidth="1024"
+						editable="false"
+						layout="ResponsiveGridLayout">
+						<List items="{cart>/}">
+							<StandardListItem
+								title="{cart>Matnm}"
+								type="Active"
+								description="{cart>Mattxt}"
+								icon="/images/홍삼캔디.jpg"
+								info="{cart>Quantity} X {cart>Price},  총 금액: {cart>TotalPrice} KRW"
+								iconDensityAware="false"
+								iconInset="false"/>
+						</List>
+						<ObjectHeader
+							title="총 결제 금액"
+							number="{data>/ProductsTotalPrice}"
+							numberUnit="KRW">
+							<attributes>
+								<ObjectAttribute
+									press="handleNavBackToList"
+									active="true"
+									text="Edit"/>
+							</attributes>
+						</ObjectHeader>
+					</form:SimpleForm>
+					<form:SimpleForm
+						title="2. 결제 수단"
+						minWidth="1024"
+						editable="false"
+						layout="ResponsiveGridLayout">
+						<form:content>
+							<Label text="선택한 결제 수단"/>
+							<Text text="{data>/selectedPayment}"/>
+							<Link press="handleNavBackToPaymentType" text="Edit"/>
+						</form:content>
+					</form:SimpleForm>
+
+					<form:SimpleForm
+						visible="{= ${data>/selectedPayment}==='Credit Card' ? true : false}"
+						title="3. 신용 카드 결제"
+						minWidth="1024"
+						editable="false"
+						layout="ResponsiveGridLayout">
+						<form:content>
+							<Label text="카드명"/>
+							<Text text="{data>/CardName}"/>
+							<Label text="카드 번호"/>
+							<Text text="{data>/CardNumber}"/>
+							<Label text="카드 CVC 번호"/>
+							<Text text="{data>/CardCode}"/>
+							<Label text="만료 일자"/>
+							<Text text="{data>/CardExpire}"/>
+							<Link press="handleNavBackToCreditCard" text="Edit"/>
+						</form:content>
+					</form:SimpleForm>
+
+					<form:SimpleForm
+						visible="{= ${data>/selectedPayment}==='Bank Transfer' ? true : false}"
+						title="3. 계좌 이체"
+						minWidth="1024"
+						editable="false"
+						layout="ResponsiveGridLayout">
+						<form:content>
+							<layout:Grid
+								defaultSpan="L6 M6 S10"
+								hSpacing="2">
+								<Label text="Beneficiary Name" design="Bold"/>
+								<Label text="Singapore Hardware e-Commerce LTD"/>
+								<Label text="Beneficiary Bank" design="Bold"/>
+								<Label text="CITY BANK, SINGAPORE BRANCH"/>
+								<Label text="Beneficiary Account Number" design="Bold"/>
+								<Label text="06110702027218"/>
+								<Label text="Bank Phone Number" design="Bold"/>
+								<Label text="+65-6224-2622"/>
+								<Label text="Bank Email Address" design="Bold"/>
+								<Label text="customerservice@citybank.com"/>
+							</layout:Grid>
+						</form:content>
+					</form:SimpleForm>
+
+					<form:SimpleForm
+						visible="{= ${data>/selectedPayment}==='Cash on Delivery' ? true : false}"
+						title="3. 카카오페이 결제"
+						minWidth="1024"
+						editable="false"
+						layout="ResponsiveGridLayout">
+						<form:content>
+							<Label text="이름"/>
+							<Text text="{data>/CashOnDelivery/FirstName}"/>
+							<Label text="성"/>
+							<Text text="{data>/CashOnDelivery/LastName}"/>
+							<Label text="휴대폰 번호"/>
+							<Text text="{data>/CashOnDelivery/Phone Number}"/>
+							<Label text="이메일 주소"/>
+							<Text text="{data>/CashOnDelivery/Email}"/>
+							<Link press="handleNavBackToCashOnDelivery" text="Edit"/>
+						</form:content>
+					</form:SimpleForm>
+
+					<form:SimpleForm
+						title="4. 배송지 주소"
+						minWidth="1024"
+						editable="false"
+						layout="ResponsiveGridLayout">
+						<form:content>
+							<Label text="주소"/>
+							<Text text="{cust>/address}"/>
+							<Label text="상세 주소"/>
+							<Text text="{cust>/detailAddress}"/>
+							<Label text="전화번호"/>
+							<Text text="{cust>/phoneNumber}"/>
+							<Label text="수취인명"/>
+							<Text text="{cust>/recipientName}"/>
+							<Label text="배송 메모"/>
+							<Text text="{cust>/memo}"/>
+							<Link press="handleNavBackToBillingAddress" text="Edit"/>
+						</form:content>
+					</form:SimpleForm>
+
+					<form:SimpleForm
+						title="5. 주문 타입"
+						minWidth="1024"
+						editable="false"
+						layout="ResponsiveGridLayout">
+						<form:content>
+							<Label text="주문한 상품 타입"/>
+							<Text text="일반상품 주문"/>
+							<!-- <Link press="handleNavBackToDeliveryType" text="Edit"/> -->
+						</form:content>
+					</form:SimpleForm>
+				</content>
+				<footer>
+					<Bar>
+						<contentRight>
+							<Button text="Submit" press="handleWizardSubmit"/>
+							<Button text="Cancel" press="handleWizardCancel"/>
+						</contentRight>
+					</Bar>
+				</footer>
+			</Page>
+		</pages>
+	</NavContainer>
+</mvc:View>

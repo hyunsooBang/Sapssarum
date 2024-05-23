@@ -1,0 +1,36 @@
+<mvc:View controllerName="login.controller.Signup"
+    xmlns:mvc="sap.ui.core.mvc" displayBlock="true"
+    xmlns="sap.m">
+    <Page id="page" title="회원가입" showNavButton="true" navButtonPress="onNavBack">
+        <content>
+            <VBox justifyContent="Center" alignItems="Center" height="100%" >
+             
+         <HBox >
+                     <FlexBox width="20%"></FlexBox>
+                    <Input id="username" placeholder="아이디" />
+                    <FlexBox width="10%"></FlexBox>
+                    <Button text="중복확인" press="onCheckDuplicatePress" />
+                </HBox>
+
+                 <!-- 비밀번호 입력 -->
+                <Input id="password" type="Password" placeholder="비밀번호" width="70%"/>
+                <!-- 비밀번호 확인 입력 -->
+                <Input id="passwordConfirm" type="Password" placeholder="비밀번호 확인"  liveChange="onPasswordConfirmLiveChange" />
+                <!-- 이름 입력 -->
+                <Input id="name" placeholder="이름"  />
+                  <!-- 주소 입력 -->
+                <Input id="address" placeholder="주소"  />
+
+                <!-- 전화번호 입력 -->
+                <Input id="phoneNumber" placeholder="전화번호"  />
+
+                <!-- 생일 입력 -->
+                <DatePicker id="birthDate" placeholder="생일"  displayFormat="yyyy-MM-dd" valueFormat="yyyy-MM-dd" />
+                
+              
+                
+        </VBox>
+        </content>
+        
+    </Page>
+</mvc:View>
