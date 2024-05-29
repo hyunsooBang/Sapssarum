@@ -32,15 +32,23 @@
 				</f:title>
 				<!-- DynamicPage Header -->
 				<f:content>
+				<VBox>
+					<FlexBox height="200px" visible="{= ${cart>/}.length === 0 }" />
+					<core:Icon color='red' src="sap-icon://SAP-icons-TNT/data" height="50px" width="100%" visible="{= ${cart>/}.length === 0 }"></core:Icon>
+					<Text text='장바구니에 담긴 상품이 존재하지 않습니다.' textAlign="Center"  width="100%" visible="{= ${cart>/}.length === 0 }"></Text>
 					<Wizard id="ShoppingCartWizard"
 					        class="sapUiResponsivePadding--header sapUiResponsivePadding--content"
 					        complete="completedHandler"
 					        height="auto"
-					        enableBranching="true">
+					        enableBranching="true"
+							visible="{= ${cart>/}.length > 0 }"
+							>
 						<WizardStep
+							
 							id="ContentsStep"
 							nextStep="PaymentTypeStep"
 							title="장바구니 상품 확인"
+							activate="checkCart"
 							icon="sap-icon://cart">
 							<ObjectHeader
 								title="총 가격"
@@ -56,21 +64,13 @@
 							      enableBusyIndicator="true"
 							      delete="handleDelete"
 							      headerText="상품">
-                                  <!-- <VBox> -->
-                                  <!-- <StandardListItem
-									title="{cart>Matnm}"
-									type="Active"
-									description="{cart>Mattxt}"
-									icon="/images/그림1.png"
-									info="{cart>TotalPrice} KRW"
-									iconDensityAware="false"
-									iconInset="false"/> -->
+                                  
 								<CustomListItem>
 									<HBox justifyContent="SpaceBetween" alignItems="Center">
 										<!-- 이미지 추가 -->
 										<HBox justifyContent="SpaceBetween" alignItems="Center">
 											<FlexBox width="20px" />
-											<Image src="/images/홍삼캔디.jpg" width="60px" height="60px" />
+											<Image src="/images/{cart>Matno}.jpg" width="60px" height="60px" />
 											<FlexBox width="20px" />
 										<VBox>
 											<Title text="{cart>Matnm}" titleStyle="H4" />
@@ -189,7 +189,7 @@
 						<WizardStep
 							id="BillingStep"
 							title="배송지 입력"
-							subsequentSteps="DeliveryAddressStep, DeliveryTypeStep"
+							subsequentSteps="DeliveryTypeStep"
 							activate="checkBillingStep"
 							complete="billingAddressComplete"
 							icon="sap-icon://sales-quote">
@@ -199,7 +199,7 @@
 								layout="ColumnLayout">
 								<Label text="기본 배송지와 일치함"/>
 								<CheckBox id ='checkBoxId'
-									selected="{/differentDeliveryAddress}"
+									selected="{data>/differentDeliveryAddress}"
 									select="setDifferentDeliveryAddress"/>
 								<Label text="주소" required="true"/>
 								<Input value="{cust>/address}" liveChange="checkBillingStep"
@@ -217,26 +217,7 @@
 								<TextArea rows="8" value="{cust>/memo}"/>
 							</form:SimpleForm>
 						</WizardStep>
-						<WizardStep
-							id="DeliveryAddressStep"
-							title="배송지 입력"
-							nextStep="DeliveryTypeStep"
-							icon="sap-icon://sales-quote">
-							<form:SimpleForm
-								editable="true"
-								layout="ColumnLayout">
-								<Label text="주소"/>
-								<Input/>
-								<Label text="상세 주소"/>
-								<Input/>
-								<Label text="우편 번호"/>
-								<Input/>
-								<Label text="수취인명"/>
-								<Input/>
-								<Label text="배송 메모"/>
-								<TextArea rows="8"/>
-							</form:SimpleForm>
-						</WizardStep>
+						
 						<WizardStep
                             
 							id="DeliveryTypeStep"
@@ -248,19 +229,10 @@
                                   <Link text = '구독상품 구경하러 가기' />
                             </VBox>
 							
-							<!-- <HBox
-								alignItems="Center"
-								justifyContent="Center"
-								width="100%">
-								<SegmentedButton selectedKey="{/selectedDeliveryMethod}" >
-									<items>
-										<SegmentedButtonItem key="Standard Delivery" text="일반상품 주문"/>
-										<SegmentedButtonItem key="Express Delivery" text="구독상품 주문"/>
-									</items>
-								</SegmentedButton>
-							</HBox> -->
+						
 						</WizardStep>
 					</Wizard>
+					</VBox>
 				</f:content>
 			</f:DynamicPage>
 			<Page id="wizardBranchingReviewPage" showHeader="false">
@@ -275,7 +247,7 @@
 								title="{cart>Matnm}"
 								type="Active"
 								description="{cart>Mattxt}"
-								icon="/images/홍삼캔디.jpg"
+								icon="/images/{cart>Matno}.jpg"
 								info="{cart>Quantity} X {cart>Price},  총 금액: {cart>TotalPrice} KRW"
 								iconDensityAware="false"
 								iconInset="false"/>
@@ -401,8 +373,8 @@
 				<footer>
 					<Bar>
 						<contentRight>
-							<Button text="Submit" press="handleWizardSubmit"/>
-							<Button text="Cancel" press="handleWizardCancel"/>
+							<Button text="주문 제출" press="handleWizardSubmit"/>
+							<Button text="주문 취소" press="handleWizardCancel"/>
 						</contentRight>
 					</Bar>
 				</footer>

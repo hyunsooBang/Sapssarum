@@ -102,11 +102,25 @@
         },
         {
           "name": "RouteCart",
-          "pattern": "cart/{key1}", 
+          "pattern": "Cart/{key1}", 
           "target": [
               "TargetCart"
           ]
-      }
+      },
+      {
+        "name": "RouteLogin",
+        "pattern": "Login/:key1:/:key2:", 
+        "target": [
+            "TargetLogin"
+        ]
+    },
+    {
+      "name": "RouteSignup",
+      "pattern": "Signup/{key1}", 
+      "target": [
+          "TargetSignup"
+      ]
+  }
       ],
       "targets": {
         "TargetMain": {
@@ -122,7 +136,21 @@
           "clearControlAggregation": false,
           "viewId": "Cart",
           "viewName": "Cart"
-      }
+      },
+      "TargetLogin": {
+        "viewType": "XML",
+        "transition": "fade",
+        "clearControlAggregation": false,
+        "viewId": "Login",
+        "viewName": "Login"
+    },
+    "TargetSignup": {
+      "viewType": "XML",
+      "transition": "fade",
+      "clearControlAggregation": false,
+      "viewId": "Signup",
+      "viewName": "Signup"
+  }
       }
     },
     "rootView": {

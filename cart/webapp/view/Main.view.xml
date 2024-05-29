@@ -15,7 +15,7 @@
 				</layoutData>
 			</Button>
 
-			<Title text="User 님" wrapping="false" id="productName">
+			<Title text="{userData>/userId} 님" wrapping="false" id="productName">
 				<layoutData>
 					<OverflowToolbarLayoutData priority="Disappear"/>
 				</layoutData>
@@ -40,7 +40,7 @@
 			<MenuButton icon="sap-icon://action-settings" type="Transparent">
 			<menu>
 				<Menu>
-					<MenuItem text="로그아웃" icon="sap-icon://log" press="onPress">
+					<MenuItem text="로그아웃" icon="sap-icon://log" press="onLoginPress">
 						<customData>
 							<core:CustomData
 								key="target"

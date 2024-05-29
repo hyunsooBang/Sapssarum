@@ -30,6 +30,15 @@ sap.ui.define([
 
                 // set the device model
                 this.setModel(models.createDeviceModel(), "device");
+
+                // JSON 모델 생성
+                var oModel = new sap.ui.model.json.JSONModel();
+
+                // 사용자 ID를 모델에 저장
+                oModel.setProperty("/userId", "");
+
+                // 모델을 컴포넌트에 설정
+                this.setModel(oModel, "userData");
             }
         });
     }

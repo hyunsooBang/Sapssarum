@@ -32,35 +32,44 @@ sap.ui.define([
     
                 oSideNavigation.setExpanded(!bExpanded);
             },
+            onLoginPress: function(){
+                // 다른 컨트롤러 또는 뷰에서 사용자 ID에 액세스
+                
+
+                this.oRouter.navTo('RouteLogin', {
+                    key1: 'Logout',
+                    key2: 'UUU777'
+                }, true);
+            },
             
             onCartPress: function(){
-                var oDataModel = this.getView().getModel();
-                // var oFilter = new Filter("Custid","EQ", 'UUU777');
-                var sPath = "/ZBBT_SD110Set";
+                // var oDataModel = this.getView().getModel();
+                // // var oFilter = new Filter("Custid","EQ", 'UUU777');
+                // var sPath = "/ZBBT_SD110Set";
                 
-                if(oDataModel ){
-                    oDataModel .read(sPath, {
-                        // filters:[oFilter],
-                        success: function (oData) {
-                          console.log('조회', oData.results);
-                          // 전역 모델에 데이터 설정
-                        var oCartModel = this.getOwnerComponent().getModel("cart");
-                        oCartModel.setData({ CartItems: oData.results });
-                        console.log('viewcompo:', oCartModel.getData());
+                // if(oDataModel ){
+                //     oDataModel .read(sPath, {
+                //         // filters:[oFilter],
+                //         success: function (oData) {
+                //           console.log('조회', oData.results);
+                //           // 전역 모델에 데이터 설정
+                //         var oCartModel = this.getOwnerComponent().getModel("cart");
+                //         oCartModel.setData({ CartItems: oData.results });
+                //         console.log('viewcompo:', oCartModel.getData());
 
-                        //   this.getView().getModel('cart').setData(oData.results);
-                        //   console.log('view:', this.getView().getModel('cart').getData());
-                        //   this.getView().getModel('cart').setData(oData);
-                          // this.getView().getModel('cart').setProperty("/CartItems", oData.results);
-                        }.bind(this),
-                        error: function (oError) {
-                          console.error("Failed to load ZBBT_SD110Set data", oError);
-                        }
-                      });
-                }
-                
+                //         //   this.getView().getModel('cart').setData(oData.results);
+                //         //   console.log('view:', this.getView().getModel('cart').getData());
+                //         //   this.getView().getModel('cart').setData(oData);
+                //           // this.getView().getModel('cart').setProperty("/CartItems", oData.results);
+                //         }.bind(this),
+                //         error: function (oError) {
+                //           console.error("Failed to load ZBBT_SD110Set data", oError);
+                //         }
+                //       });
+                // }
+                var sUserId = this.getOwnerComponent().getModel("userData").getProperty("/userId");
                 this.oRouter.navTo('RouteCart', {
-                    key1: 'UUU777'
+                    key1: sUserId
                        }, true);
                 // .navTo('라우트 객체 이름(name)', {파라미터 정보}, history 초기화)
             },

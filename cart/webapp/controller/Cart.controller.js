@@ -21,6 +21,7 @@ sap.ui.define([
         };
 
         var id;
+        var custno;
         
         
         return Controller.extend("cart.controller.Cart", {
@@ -32,25 +33,18 @@ sap.ui.define([
                 this._wizard = this.byId("ShoppingCartWizard");
                 this._oNavContainer = this.byId("navContainer");
                 this._oDynamicPage = this.getPage();
-               
-
-
-                   // Wizard 초기화 및 첫 번째 단계로 설정
-                // this._wizard.setCurrentStep(this._wizard.getSteps()[1]);
                 
                 this.model = new JSONModel();
-			    this.model.attachRequestCompleted(null, function () {
-                    
-				// this.model.getData().ProductCollection.splice(5, this.model.getData().ProductCollection.length);
-                console.log('reqyest');
-				this.model.setProperty("/selectedPayment", "Credit Card");
-				this.model.setProperty("/selectedDeliveryMethod", "Standard Delivery");
-				this.model.setProperty("/differentDeliveryAddress", false);
-				this.model.setProperty("/CashOnDelivery", {});
-				this.model.setProperty("/BillingAddress", {});
-				this.model.setProperty("/CreditCard", {});
-				this.model.updateBindings();
-			}.bind(this));
+			//     this.model.attachRequestCompleted(null, function () {
+            //     console.log('reqyest');
+			// 	this.model.setProperty("/selectedPayment", "Credit Card");
+			// 	this.model.setProperty("/selectedDeliveryMethod", "Standard Delivery");
+			// 	this.model.setProperty("/differentDeliveryAddress", false);
+			// 	this.model.setProperty("/CashOnDelivery", {});
+			// 	this.model.setProperty("/BillingAddress", {});
+			// 	this.model.setProperty("/CreditCard", {});
+			// 	this.model.updateBindings();
+			// }.bind(this));
             this.getView().setModel(this.model, 'data');
 
             this.getView().setModel(new JSONModel(), 'cart');
@@ -64,13 +58,15 @@ sap.ui.define([
             });
             this.getView().setModel(custModel, 'cust');
             
-            
             },
+         
 
             formatCurrency: function (amount) {
                 // 숫자를 통화 형식(콤마)으로 변환하여 반환
                 return amount.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
             },
+             
+            
 
             calcTotal: function () {
                 // 'cart' 모델에서 전체 데이터를 가져옴
@@ -106,9 +102,12 @@ sap.ui.define([
                         // 성공적으로 데이터를 읽어왔을 때
                         console.log('name data', oData);
                         var sCustnm = oData.Custnm; // Custnm 값을 가져와 변수에 저장
+                        var custno = oData.Custno;
                         // name 변수에 Custnm 값을 설정
                         console.log('name:',sCustnm);
+                        console.log('name:',custno);
                         this.getView().getModel('data').setProperty("/name", sCustnm);
+                        this.getView().getModel('data').setProperty("/custno",custno);
                     }.bind(this),
                     error: function (oError) {
                         // 데이터를 읽어오지 못했을 때의 처리
@@ -120,12 +119,14 @@ sap.ui.define([
                 this.loadCartItemsData();
                 this._wizard.discardProgress(this._wizard.getSteps()[0]);
                 this.handleNavBackToList();
+
                 
             },
             onIncreaseQuantity: function (oEvent) {
                 var oItem = oEvent.getSource().getBindingContext("cart").getObject();
                 var oCartModel = this.getView().getModel("cart");
                 var aCartItems = oCartModel.getData();
+                var price ;
                 console.log('cartitme1',aCartItems);
                 aCartItems.forEach(function(item) {
                     if (item.Matno === oItem.Matno) {
@@ -134,6 +135,7 @@ sap.ui.define([
                     }
                 });
                 console.log('cartitme2',aCartItems);
+                
                 oCartModel.setData(aCartItems);
                 this.calcTotal(aCartItems);
             },
@@ -153,7 +155,8 @@ sap.ui.define([
             },
             onNavBack: function(){
                 //URL parameter로 넘기는 데이터가 많으면
-                this.clearDatabase();
+                this.updateDatabase();
+                this.clearCartData();
                 // this.saveJsonToDatabase();
                 this.oRouter.navTo('RouteMain',{
                     'query' : {
@@ -164,32 +167,80 @@ sap.ui.define([
                 });
             
             },
-            clearDatabase: function() {
-                var oModel = this.getView().getModel(); // OData 모델 가져오기
-                var oDBCartModel = this.getView().getModel('cart'); // 'cart' 모델 가져오기
-                var aDBcartData = oDBCartModel.getData(); // 모델의 데이터 가져오기
-                
-                if (!Array.isArray(aDBcartData)) {
-                    console.error("DBcart 데이터가 배열이 아닙니다.");
-                    return;
-                }
+           
+            updateDatabase: function() {
+                var oDataModel = this.getView().getModel();
+                var oCustomerId = id;
+                var oCart = this.getView().getModel('cart').getData(); // cart 데이터 가져오기
+                var oFilter = new sap.ui.model.Filter("Custid", "EQ", oCustomerId);
+                var aOriginData;
+                var aUpdates;
+
+                // 비활성화된 배치 처리 설정
+                oDataModel.setUseBatch(false);
             
-                // 각 항목을 개별적으로 삭제
-                aDBcartData.forEach(function(oEntity) {
-                    var sEntityPath = oModel.createKey("/ZBBT_SD110Set", {
-                        Custid: oEntity.Custid,
-                        Matno: oEntity.Matno // 키 필드 추가
-                    });
-                    oModel.remove(sEntityPath, {
-                        success: function() {
-                            console.log("삭제 완료: " + sEntityPath);
-                        }.bind(this),
-                        error: function(oError) {
-                            console.error("삭제 실패: " + sEntityPath, oError);
-                        }
-                    });
-                }.bind(this));
+                // 필터링된 데이터를 읽기
+                oDataModel.read("/ZBBT_SD110Set", {
+                    filters: [oFilter],
+                    success: function(oData) {
+                        aOriginData = oData.results; // 기존 데이터
+            
+                        // cart에 있는 데이터와 비교하여 업데이트가 필요한 데이터 필터링
+                        aUpdates = oCart.filter(function(oCartItem) {
+                            var oOriginItem = aOriginData.find(function(oOriginItem) {
+                                return oOriginItem.Matno === oCartItem.Matno;
+                            });
+                            return oOriginItem && oOriginItem.Quantity !== oCartItem.Quantity;
+                        }).map(function(oCartItem) {
+                            return {
+                                Custid: oCustomerId,
+                                Matno: oCartItem.Matno,
+                                Quantity: oCartItem.Quantity,
+                                Unit: oCartItem.Unit
+                            };
+                        });
+            
+                        console.log('update', aUpdates);
+            
+                        var iSuccessCount = 0;
+                        var iErrorCount = 0;
+                        var iProcessedCount = 0;
+            
+                        // 업데이트 실행
+                        aUpdates.forEach(function(oUpdateItem) {
+                            var sPath = oDataModel.createKey("/ZBBT_SD110Set", {
+                                'Custid': oCustomerId,
+                                'Matno': oUpdateItem.Matno
+                            });
+            
+                            oDataModel.update(sPath, oUpdateItem, {
+                                success: function() {
+                                    iSuccessCount++;
+                                    iProcessedCount++;
+                                    if (iProcessedCount === aUpdates.length) {
+                                        sap.m.MessageToast.show("데이터 업데이트 완료: " + iSuccessCount + "건");
+                                        oDataModel.refresh(); // 모델을 새로고침하여 변경 사항을 반영
+                                    }
+                                },
+                                error: function(oError) {
+                                    iErrorCount++;
+                                    iProcessedCount++;
+                                    console.error("데이터 업데이트 실패: " + oError.message);
+                                    if (iProcessedCount === aUpdates.length) {
+                                        sap.m.MessageToast.show("데이터 업데이트 실패: " + iErrorCount + "건");
+                                        oDataModel.refresh(); // 모델을 새로고침하여 변경 사항을 반영
+                                    }
+                                }
+                            });
+                        });
+                    },
+                    error: function() {
+                        sap.m.MessageToast.show("데이터 읽기 실패");
+                    }
+                });
             },
+            
+            
             
             
             saveDBCartToDatabase: function() {
@@ -298,23 +349,41 @@ sap.ui.define([
                 var listItem = oEvent.getParameter("listItem");
                 var oModel = this.getView().getModel("cart");
                 var sMatnm = listItem.getBindingContext("cart").getProperty("Matnm");
+                var sMatno = listItem.getBindingContext("cart").getProperty("Matno");
             
                 sap.m.MessageBox.confirm("장바구니에서 '" + sMatnm + "'을(를) 삭제하시겠습니까?", {
                     actions: [sap.m.MessageBox.Action.YES, sap.m.MessageBox.Action.NO],
                     onClose: function (sAction) {
                         if (sAction === sap.m.MessageBox.Action.YES) {
-                            console.log('yes');
                             var aCartItems = oModel.getData();
                             aCartItems = aCartItems.filter(function (item) {
                                 return item.Matnm !== sMatnm;
                             });
                             oModel.setData(aCartItems);
                             this.calcTotal();
+                            this.onDeleteCartItem(sMatno);
                         }
                     }.bind(this)
                 });
             },
             
+            onDeleteCartItem: function(matno) {
+                //데이터 삭제
+                //delete 요청: "/Products('1000')"
+                var oDataModel = this.getView().getModel();
+                
+                var sPath = oDataModel.createKey("/ZBBT_SD110Set",{
+                    "Custid" : id,
+                    "Matno" : matno
+                });
+                oDataModel.remove(sPath, {
+                    success: function(oReturn) {
+                        console.log("삭제",oReturn)
+                    }
+                });
+
+
+            },
             
             
             
@@ -350,19 +419,8 @@ sap.ui.define([
                     historyPath: "prevPaymentSelect"
                 });
             },
-            // setDifferentDeliveryAddress: function () {
-            //     this.setDiscardableProperty({
-            //         message: "배송지 주소를 변경하시겠습니까 ? 진행 상황은 저장되지 않습니다.",
-            //         discardStep: this.byId("BillingStep"),
-            //         modelPath: "/differentDeliveryAddress",
-            //         historyPath: "prevDiffDeliverySelect"
-            //     });
-            // },
             
             setDifferentDeliveryAddress: function (oEvent) {
-                console.log('checked');
-                // var bDifferentDeliveryAddress = this.getView().getModel("data").getProperty("/differentDeliveryAddress");
-
                 var checkBox = oEvent.getSource(); // 체크박스 컨트롤 가져오기
                 var selected = checkBox.getSelected(); // 선택 여부 확인
                 console.log("Checkbox selected:", selected);
@@ -396,6 +454,7 @@ sap.ui.define([
                     custModel.setProperty("/phoneNumber", "");
                     custModel.setProperty("/recipientName", "");
                 }
+                this.checkBillingStep();
                 
             },
 
@@ -431,7 +490,7 @@ sap.ui.define([
             },
     
             handleWizardSubmit: function () {
-                this._handleMessageBoxOpen("구매 요청을 제출하시겠습니까 ?", "confirm");
+                this._handleMessageBoxOpen("주문 요청을 제출하시겠습니까 ?", "confirm");
             },
     
             backToWizardContent: function () {
@@ -465,22 +524,191 @@ sap.ui.define([
                     this._wizard.validateStep(this.byId("BillingStep"));
                 }
             },
+            checkCart: function () {
+                var oCart = this.getView().getModel('cart');
+                if (oCart == false ) {
+                    this._wizard.invalidateStep(this.byId("PaymentTypeStep"));
+                } else {
+                    this._wizard.validateStep(this.byId("PaymentTypeStep"));
+                }
+            },
     
             completedHandler: function () {
                 this._oNavContainer.to(this.byId("wizardBranchingReviewPage"));
             },
-    
+            
             _handleMessageBoxOpen: function (sMessage, sMessageBoxType) {
                 sap.m.MessageBox[sMessageBoxType](sMessage, {
                     actions: [sap.m.MessageBox.Action.YES, sap.m.MessageBox.Action.NO],
                     onClose: function (oAction) {
-                        if (oAction === sap.m.MessageBox.Action.YES) {
+                        if (oAction === sap.m.MessageBox.Action.YES && sMessageBoxType === 'confirm') {
+                            this.saveOrder()
+                                .then(this.onDeleteCart.bind(this))
+                                .then(() => {
+                                    this._wizard.discardProgress(this._wizard.getSteps()[0]);
+                                    this.handleNavBackToList();
+                                    this.loadCartItemsData();
+                                    this.clearCartData();
+                                })
+                                .catch((error) => {
+                                    console.error("An error occurred:", error);
+                                });
+                        } else if (oAction === sap.m.MessageBox.Action.YES && sMessageBoxType === 'warning') {
                             this._wizard.discardProgress(this._wizard.getSteps()[0]);
                             this.handleNavBackToList();
+                            this.clearCartData();
                         }
                     }.bind(this)
                 });
+            }
+            ,
+            
+
+            formatDate: function(date) {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0'); // 월은 0부터 시작하므로 1을 더해줍니다.
+                const day = String(date.getDate()).padStart(2, '0');
+                const hours = String(date.getHours()).padStart(2, '0');
+                const minutes = String(date.getMinutes()).padStart(2, '0');
+                const seconds = String(date.getSeconds()).padStart(2, '0');
+                
+                return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+              },
+
+              saveOrder: function() {
+                return new Promise((resolve, reject) => {
+                    var cdate = this.formatDate(new Date());
+                    var oDataModel = this.getView().getModel();
+                    var oData = this.getView().getModel('data').getData();
+                    var oCart = this.getView().getModel('cart').getData();
+                    var oCust = this.getView().getModel('cust').getData();
+                    var orderno;
+            
+                    oDataModel.setUseBatch(false);
+            
+                    var oHeaderBody = {
+                        'Custno': oData.custno,
+                        'Orderty': "0",
+                        'Orderdate': cdate,
+                        'Ptotal': oData.ProductsTotalPrice.replace(/,/g, ''),
+                        'Currency': "KRW",
+                        'Shipadd': oCust.address + ' ' + oCust.detailAddress,
+                        'Ordstat': "0"
+                    };
+            
+                    oDataModel.create('/ZBBT_SD040_CARTSet', oHeaderBody, {
+                        success: (oHeader) => {
+                            console.log('Header saved:', oHeader);
+            
+                            var sOrderPath = "/ZBBT_SD040_CARTITEMSet";
+                            var oFilter1 = new sap.ui.model.Filter("Custno","EQ", oData.custno);
+                            oDataModel.read(sOrderPath, {
+                                filters: [oFilter1],
+                                success: (oData) => {
+                                    orderno = oData.results[0].Orderno;
+                                    var aCartItems = [];
+            
+                                    if (oCart) {
+                                        aCartItems = oCart.map(item => ({
+                                            Orderno: orderno,
+                                            Matno: item.Matno,
+                                            Quantity: item.Quantity,
+                                            Unit: item.Unit,
+                                            Pdtotal: item.TotalPrice.toString(),
+                                            Currency: 'KRW'
+                                        }));
+            
+                                        Promise.all(aCartItems.map(cartItem => {
+                                            return new Promise((resolve, reject) => {
+                                                oDataModel.create("/ZBBT_SD050Set", cartItem, {
+                                                    success: () => {
+                                                        console.log('Item saved:', cartItem);
+                                                        resolve();
+                                                    },
+                                                    error: (oError) => {
+                                                        console.log("Error saving item: ", cartItem, oError);
+                                                        reject(oError);
+                                                    }
+                                                });
+                                            });
+                                        })).then(resolve).catch(reject);
+                                    } else {
+                                        resolve();
+                                    }
+                                },
+                                error: (oError) => {
+                                    console.log("Error reading order number: ", oError);
+                                    reject(oError);
+                                }
+                            });
+                        },
+                        error: (oError) => {
+                            console.log("Error creating header: ", oError);
+                            reject(oError);
+                        }
+                    });
+                });
+            }
+            ,
+
+            onDeleteCart: function() {
+                return new Promise((resolve, reject) => {
+                    var oDataModel = this.getView().getModel();
+                    //var id = this.getView().getModel('cust').getData().custid; // 적절한 ID 가져오기
+                    var oFilter = new sap.ui.model.Filter("Custid", "EQ", id);
+            
+                    oDataModel.setUseBatch(false);
+                    oDataModel.read("/ZBBT_SD110Set", {
+                        filters: [oFilter],
+                        success: (oData) => {
+                            var aItemsToDelete = oData.results;
+                            
+                            Promise.all(aItemsToDelete.map(item => {
+                                return new Promise((resolve, reject) => {
+                                    var sPath = oDataModel.createKey("/ZBBT_SD110Set", {
+                                        'Custid': item.Custid,
+                                        'Matno': item.Matno
+                                    });
+            
+                                    oDataModel.remove(sPath, {
+                                        success: () => {
+                                            console.log('Item deleted:', item);
+                                            resolve();
+                                        },
+                                        error: (oError) => {
+                                            console.log("Error deleting item: ", item, oError);
+                                            reject(oError);
+                                        }
+                                    });
+                                });
+                            })).then(resolve).catch(reject);
+                        },
+                        error: (oError) => {
+                            console.log("Error reading data: ", oError);
+                            reject(oError);
+                        }
+                    });
+                });
+            }
+            ,
+
+            clearCartData: function(){
+                this.getView().getModel('data').setProperty('/CardName','');
+                this.getView().getModel('data').setProperty('/CardNumber','');
+                this.getView().getModel('data').setProperty('/CardCode','');
+                this.getView().getModel('data').setProperty('/CardExpire','');
+                this.getView().getModel('cust').setData({
+                    address: "",
+                    detailAddress: "",
+                    phoneNumber: "",
+                    recipientName: "",
+                    memo: ""
+                });
+                this.getView().getModel('data').setProperty('/differentDeliveryAddress',false);
+               
+
             },
+            
     
             handleNavBackToList: function () {
                 this._navBackToStep(this.byId("ContentsStep"));

@@ -1,0 +1,43 @@
+<mvc:View controllerName="cart.controller.Login"
+    xmlns:core="sap.ui.core"
+    xmlns:mvc="sap.ui.core.mvc"
+    displayBlock="true"
+    xmlns="sap.m"
+    xmlns:l="sap.ui.layout"
+    xmlns:html="http://www.w3.org/1999/xhtml">
+    <html:head>
+        <html:link rel="stylesheet" href="css/style.css"/>
+    </html:head>
+    <Page id="page" showNavButton="true">
+        <content>
+            <!-- 배경 이미지 -->
+            <VBox class="fullscreen-bg"></VBox>
+
+            <!-- 로그인 폼 -->
+            <VBox class="fullscreen-content" justifyContent="Center" alignItems="Center">
+            
+                <!-- 로그인 폼 -->
+                <VBox width="80%" alignItems="Center" justifyContent="Center" class="sapUiSmallMarginTop sapUiSmallMarginBottom">
+                    <FlexBox height="110px"/>
+                    <!-- ID Input Row -->
+                    <HBox>
+                        <Text text="ID" class="input-label"/>
+                        <Input id="id"  width="80%" maxLength="15"/>
+                    </HBox>
+                    <!-- Password Input Row -->
+                    <HBox >
+                        <Text text="PW" class="input-label"/>
+                        <Input id="password" type="Password" width="80%" maxLength="20"/>
+                    </HBox>
+                    <FlexBox height="40px"></FlexBox>
+                    <Button id="login-button" text="로그인" press="onLoginPress" />
+
+                    <!-- Sign Up Link -->
+                    <HBox width="100%" justifyContent="Center" class="sapUiTinyMarginTop">
+                        <Link id="signup-link" text="쌉싸름 회원가입 하러가기" press="onSignUpPress1"/>
+                    </HBox>
+                </VBox>
+            </VBox>
+        </content>
+    </Page>
+</mvc:View>
