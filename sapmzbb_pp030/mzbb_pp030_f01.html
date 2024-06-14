@@ -1,0 +1,1044 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>MZBB_PP030_F01</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: MZBB_PP030_F01</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZBB_PP010_F01</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          ZBB_FI030_F01</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          ZBB_SKELETON_F01</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form get_data</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM get_data .
+  CASE 'X'.
+    WHEN gv_r1.
+      gv_where1 = ``.
+    WHEN gv_r2.
+      gv_where1 = `DEFPTYPE EQ '0'`.
+    WHEN OTHERS.
+      gv_where1 = `DEFPTYPE EQ '1'`.
+  ENDCASE.
+  PERFORM select_data.
+ENDFORM.
+
+
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form exit</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM exit .
+  CASE ok_code.
+    WHEN 'CANCEL'.
+      CLEAR: zbbt_pp060-porderno, zbbt_pp060-pordwdat, zbbt_pp060-matno,
+             gv_where1, gv_where2, gv_where3.
+      LEAVE TO SCREEN 100.
+    WHEN 'EXIT'.
+      LEAVE PROGRAM.
+  ENDCASE.
+ENDFORM.
+
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form user_command_0100</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM user_command_0100 .
+  CASE ok_code.
+    WHEN 'BACK'.
+      LEAVE TO SCREEN 0.
+    WHEN 'FCGET'.
+       my_tabstrip-activetab = ok_code.
+    WHEN 'FCSET'.
+      my_tabstrip-activetab = ok_code.
+      CLEAR: gt_filter.
+      PERFORM display_grid_split.
+   WHEN 'MOVE_CHECK'. "생산검수ㄱ
+     CALL TRANSACTION 'ZBBPP010'.
+   WHEN 'MOVE_IN'. "입고관리
+<font color ="#0000FF">*     LEAVE TO TRANSACTION 'ZBBPP010'.</font>
+  ENDCASE.
+ENDFORM.
+
+
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form create_container</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM create_container .
+  CREATE OBJECT go_container1
+    EXPORTING
+      container_name = 'MY_CONTROL1'
+    EXCEPTIONS
+      OTHERS         = 1.
+
+  IF sy-subrc &lt;&gt; 0.
+    MESSAGE a010(bc405_408).
+  ENDIF.
+
+  CREATE OBJECT go_alv_grid1
+    EXPORTING
+      i_parent = go_container1
+    EXCEPTIONS
+      OTHERS   = 1.
+  IF sy-subrc &lt;&gt; 0.
+    MESSAGE a010(bc405_408).
+  ENDIF.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_layout</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_layout .
+  DATA: lv_title TYPE string.
+
+  CONCATENATE gv_tpyymm+0(4) '년' gv_tpyymm+4(2) '월 폐기예정 항목' INTO lv_title.
+  gs_layout-zebra      = 'X'. "행 얼룩무늬
+  gs_layout-no_rowmark    = 'X'.
+  gs_layout-grid_title = lv_title.
+<font color ="#0000FF">*  gs_layout-cwidth_opt  = 'X'. "열 너비 최적화</font>
+
+<font color ="#0000FF">*  gs_layout-excp_fname = 'STATUS'. "예외</font>
+<font color ="#0000FF">*  gs_layout-excp_led = 'X'. "000에서 하나만 표시</font>
+  gs_layout-info_fname = 'COLOR'.
+
+
+ENDFORM.
+
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form display_grid</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM display_grid .
+  CALL METHOD go_alv_grid1-&gt;set_table_for_first_display
+    EXPORTING
+      i_structure_name = 'ZBBT_MM090'
+<font color ="#0000FF">*     is_variant       = gs_variant</font>
+      i_save           = 'A'
+      is_layout        = gs_layout
+    CHANGING
+      it_fieldcatalog  = gt_fcat
+      it_outtab        = gt_dmm090
+     it_sort          = gt_sort
+    EXCEPTIONS
+      OTHERS           = 1.
+  IF sy-subrc &lt;&gt; 0.
+    MESSAGE a012(bc405_408).
+  ENDIF.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form select_data</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM select_data .
+  SELECT
+    indate
+    a~performno
+    a~purordno
+    a~batchno
+    a~matno
+    defptype
+    a~quantity
+    a~unit
+    mdelflag
+    INTO CORRESPONDING FIELDS OF TABLE gt_dmm090
+        FROM zbbt_mm090 AS a
+        INNER JOIN zbbt_mm070 AS b
+        ON a~batchno EQ b~batchno
+        WHERE indate LIKE gv_tpyymm
+        AND a~storno EQ 'BYW003'
+        AND (gv_where1)
+        AND (gv_where2)
+        AND (gv_where3)
+        AND a~mdelflag = '0' OR a~mdelflag = '2'
+        ORDER BY a~batchno.
+
+    IF gt_dmm090 IS INITIAL.
+
+      MESSAGE s107 DISPLAY LIKE 'E'.
+    ENDIF.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form make_data</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM make_data .
+  DATA: ls_mm020 TYPE zbbt_mm020,
+        ls_pp070 TYPE zbbt_pp070.
+
+  LOOP AT gt_dmm090 INTO gs_dmm090.
+
+
+    SELECT SINGLE disptxt FROM zbbt_pp070
+      INTO gs_dmm090-disptxt
+      WHERE performno EQ gs_dmm090-performno.
+
+  IF gs_dmm090-defptype EQ '0'.
+        gs_dmm090-defptype_txt = '생산 공정 불량'.
+      ELSE.
+        gs_dmm090-defptype_txt = '유통기한 초과'.
+        gs_dmm090-disptxt = '유통기한 초과 불량'.
+<font color ="#0000FF">*        select single PURORDNO from zbbt_mm</font>
+      ENDIF.
+
+    SELECT SINGLE matnm FROM zbbt_mm020
+      INTO gs_dmm090-matnm
+      WHERE matno EQ gs_dmm090-matno.
+
+    IF gs_dmm090-mdelflag EQ '2' .
+      gs_dmm090-color = 'C600'.
+    ENDIF.
+
+    MODIFY gt_dmm090 FROM gs_dmm090.
+  ENDLOOP.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_fcat</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_fcat .
+
+  CLEAR gs_fcat.
+  gs_fcat-fieldname = 'INDATE'.
+  gs_fcat-coltext = '입고날짜'.
+  gs_fcat-just    = 'L'.
+  gs_fcat-col_pos = 1.
+  APPEND gs_fcat TO gt_fcat.
+
+  CLEAR gs_fcat.
+  gs_fcat-fieldname = 'PERFORMNO'.
+  gs_fcat-coltext = '생산실적번호'.
+  gs_fcat-just    = 'L'.
+  gs_fcat-key = 'X'.
+  gs_fcat-outputlen = 15.
+  gs_fcat-col_pos = 2.
+  APPEND gs_fcat TO gt_fcat.
+
+<font color ="#0000FF">*  CLEAR gs_fcat.</font>
+<font color ="#0000FF">*  gs_fcat-fieldname = 'PURORDNO'.</font>
+<font color ="#0000FF">*  gs_fcat-coltext = '구매오더번호'.</font>
+<font color ="#0000FF">*  gs_fcat-just    = 'L'.</font>
+<font color ="#0000FF">*  gs_fcat-key = 'X'.</font>
+<font color ="#0000FF">*  gs_fcat-outputlen = 15.</font>
+<font color ="#0000FF">*  gs_fcat-col_pos = 3.</font>
+<font color ="#0000FF">*  APPEND gs_fcat TO gt_fcat.</font>
+
+  CLEAR gs_fcat.
+  gs_fcat-fieldname = 'BATCHNO'.
+  gs_fcat-coltext = '배치번호'.
+  gs_fcat-just    = 'L'.
+  gs_fcat-outputlen = 15.
+  gs_fcat-col_pos = 3.
+  APPEND gs_fcat TO gt_fcat.
+
+  CLEAR gs_fcat.
+  gs_fcat-fieldname = 'MATNO'.
+  gs_fcat-coltext = '자재코드'.
+  gs_fcat-just    = 'C'.
+  gs_fcat-key = 'X'.
+  gs_fcat-outputlen = 10.
+  gs_fcat-col_pos = 4.
+  APPEND gs_fcat TO gt_fcat.
+
+  CLEAR gs_fcat.
+  gs_fcat-fieldname = 'MATNM'.
+  gs_fcat-coltext = '자재명'.
+  gs_fcat-just    = 'C'.
+  gs_fcat-outputlen = 20.
+  gs_fcat-col_pos = 5.
+  APPEND gs_fcat TO gt_fcat.
+
+  CLEAR gs_fcat.
+  gs_fcat-fieldname = 'DEFPTYPE_TXT'.
+  gs_fcat-coltext = '불량품 유형'.
+  gs_fcat-just    = 'L'.
+  gs_fcat-outputlen = 10.
+  gs_fcat-col_pos = 6.
+  APPEND gs_fcat TO gt_fcat.
+
+  CLEAR gs_fcat.
+  gs_fcat-fieldname = 'QUANTITY'.
+  gs_fcat-coltext = '불량품 수량'.
+  gs_fcat-just    = 'R'.
+  gs_fcat-outputlen = 10.
+  gs_fcat-col_pos = 7.
+  gs_fcat-do_sum = 'X'.
+  APPEND gs_fcat TO gt_fcat.
+
+  CLEAR gs_fcat.
+  gs_fcat-fieldname = 'UNIT'.
+  gs_fcat-coltext = '단위'.
+  gs_fcat-just    = 'L'.
+  gs_fcat-outputlen = 4.
+  gs_fcat-col_pos = 8.
+  APPEND gs_fcat TO gt_fcat.
+
+  CLEAR gs_fcat.
+  gs_fcat-fieldname = 'DISPTXT'.
+  gs_fcat-coltext = '불량 사유'.
+  gs_fcat-just    = 'L'.
+  gs_fcat-outputlen = 17.
+  gs_fcat-col_pos = 9.
+  APPEND gs_fcat TO gt_fcat.
+
+
+  CLEAR gs_fcat.
+  gs_fcat-fieldname = 'DEFPTYPE'.
+  gs_fcat-no_out = 'X'.
+  APPEND gs_fcat TO gt_fcat.
+
+  CLEAR gs_fcat.
+  gs_fcat-fieldname = 'MDELFLAG'.
+  gs_fcat-no_out = 'X'.
+  APPEND gs_fcat TO gt_fcat.
+
+  CLEAR gs_fcat.
+  gs_fcat-fieldname = 'STORNO'.
+  gs_fcat-no_out = 'X'.
+  APPEND gs_fcat TO gt_fcat.
+
+
+CLEAR gs_fcat.
+  gs_fcat-fieldname = 'MDELFLAG'.
+  gs_fcat-no_out = 'X'.
+  APPEND gs_fcat TO gt_fcat.
+
+CLEAR gs_fcat.
+  gs_fcat-fieldname = 'EXPIRDT'.
+  gs_fcat-no_out = 'X'.
+  APPEND gs_fcat TO gt_fcat.
+
+  CLEAR gs_fcat.
+  gs_fcat-fieldname = 'PURORDNO'.
+  gs_fcat-no_out = 'X'.
+  APPEND gs_fcat TO gt_fcat.
+
+CLEAR gs_fcat.
+  gs_fcat-fieldname = 'CREATE_DT'.
+  gs_fcat-no_out = 'X'.
+  APPEND gs_fcat TO gt_fcat.
+
+  CLEAR gs_fcat.
+  gs_fcat-fieldname = 'CREATE_TM'.
+  gs_fcat-no_out = 'X'.
+  APPEND gs_fcat TO gt_fcat.
+
+  CLEAR gs_fcat.
+  gs_fcat-fieldname = 'CUSER'.
+  gs_fcat-no_out = 'X'.
+  APPEND gs_fcat TO gt_fcat.
+
+  CLEAR gs_fcat.
+  gs_fcat-fieldname = 'UPDATE_DT'.
+  gs_fcat-no_out = 'X'.
+  APPEND gs_fcat TO gt_fcat.
+
+  CLEAR gs_fcat.
+  gs_fcat-fieldname = 'UPDATE_TM'.
+  gs_fcat-no_out = 'X'.
+  APPEND gs_fcat TO gt_fcat.
+
+  CLEAR gs_fcat.
+  gs_fcat-fieldname = 'UUSER'.
+  gs_fcat-no_out = 'X'.
+  APPEND gs_fcat TO gt_fcat.
+
+
+ENDFORM.
+
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_handler</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_handler .
+  CREATE OBJECT go_handler.
+  SET HANDLER:
+               go_handler-&gt;handle_on_toolbar FOR go_alv_grid1,
+               go_handler-&gt;on_user_command FOR go_alv_grid1.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form on_toolbar</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      --&gt; E_OBJECT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM on_toolbar  USING    p_object.
+  DATA: ls_button TYPE stb_button,
+        ls_object TYPE REF TO cl_alv_event_toolbar_set.
+
+  ls_object = p_object.
+
+<font color ="#0000FF">*   Separator</font>
+  ls_button-butn_type = 3.
+  INSERT ls_button INTO TABLE ls_object-&gt;mt_toolbar.
+
+  CLEAR ls_button.
+  ls_button-function  = 'disp'. "fc code
+  ls_button-icon      = icon_delete.    "icon
+  ls_button-text      = '폐기 처리'.
+  ls_button-butn_type = 0.
+  INSERT ls_button INTO TABLE ls_object-&gt;mt_toolbar. "ls_object안 toolbar 테이블에 저장
+
+  CLEAR ls_button.
+  ls_button-function  = 'save'. "fc code
+  ls_button-icon      = icon_system_modus_delete.    "icon
+  ls_button-text      = '폐기 저장'.
+  ls_button-butn_type = 0.
+  INSERT ls_button INTO TABLE ls_object-&gt;mt_toolbar. "ls_object안 toolbar 테이블에 저장
+
+  CLEAR ls_button.
+  ls_button-function  = 'undo'. "fc code
+  ls_button-icon      = icon_page_left.    "icon
+  ls_button-text      = '폐기 취소'.
+  ls_button-butn_type = 0.
+  INSERT ls_button INTO TABLE ls_object-&gt;mt_toolbar. "ls_object안 toolbar 테이블에 저장
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form on_user_command</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      --&gt; E_UCOMM</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM on_user_command  USING    p_ucomm.
+  DATA: lt_index TYPE lvc_t_row,
+        ls_index TYPE lvc_s_row,
+        lv_rows  TYPE i,
+        lv_cnt TYPE i.
+
+  CASE p_ucomm.
+    WHEN 'disp'.
+        CALL SCREEN 111
+          STARTING AT 10 10.
+    WHEN 'save'.
+      PERFORM save_disp.
+    WHEN 'undo'.
+      PERFORM undo_disp.
+
+
+  ENDCASE.
+ENDFORM.
+
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form user_command_0110</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM user_command_0110 .
+  CASE ok_code.
+    WHEN 'BTN'.
+      IF zbbt_mm070-indate IS NOT INITIAL.
+        gv_where2 = `indate eq zbbt_mm070-indate`.
+      ELSE.
+        gv_where2 = ``.
+      ENDIF.
+      IF zbbt_mm090-matno IS NOT INITIAL.
+        gv_where3 = `a~matno eq zbbt_mm090-matno`.
+      ELSE.
+        gv_where3 = ``.
+      ENDIF.
+
+      PERFORM get_data.
+    WHEN 'RAD'.
+      PERFORM get_data.
+    WHEN 'REFBTN'.
+      CLEAR: zbbt_mm070-indate, zbbt_mm090-matno,
+             gv_where1, gv_where2, gv_where3.
+      gv_r1 = 'X'.
+      gv_r2 = ''.
+      gv_r3 = ''.
+
+      PERFORM get_data.
+  ENDCASE.
+
+ENDFORM.
+
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form get_detail</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM get_detail .
+  DATA: ls_price TYPE zbbt_pp040-prototal,
+        lv_dat TYPE string.
+
+  CLEAR gv_disptotal.
+
+  LOOP AT gt_dmm090 INTO gs_dmm090.
+    SELECT SINGLE prototal FROM zbbt_pp040
+      INTO ls_price
+      WHERE matno EQ gs_dmm090-matno.
+
+   gv_disptotal = gv_disptotal + ( ls_price * gs_dmm090-quantity ).
+
+  ENDLOOP.
+
+  gs_pp080-dispdat = sy-datum.
+  gs_pp080-disptotal = gv_disptotal.
+  gs_pp080-currency = 'KRW'.
+  gs_pp080-empno = 'HR240509'.
+
+   MOVE-CORRESPONDING gs_pp080 TO zbbt_pp080.
+
+   lv_dat = sy-datum+4(2).
+   CONCATENATE lv_dat '월' INTO gv_pmonth_pop.
+
+ENDFORM.
+
+
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form go_disp</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM go_disp .
+  DATA: lv_price TYPE zbbt_pp040-prototal,
+        lv_quantity TYPE zbbt_pp090-quantity,
+        lv_total TYPE zbbt_pp090-totalmt,
+        lv_last_matno TYPE zbbt_pp090-matno,
+        lv_matno TYPE zbbt_pp090-matno,
+        lt_mm090 TYPE TABLE OF zbbt_mm090,
+        ls_mm090 TYPE zbbt_mm090.
+
+  SORT gt_dmm090 BY matno. "matno로 정렬
+
+  SELECT * FROM zbbt_mm090 INTO TABLE lt_mm090.
+
+  LOOP AT gt_dmm090 INTO gs_dmm090. "alv 테이블 루프
+
+    IF gs_dmm090-matno &lt;&gt; lv_last_matno. "맨처음이랑 matno가 바뀔때마다 탐
+      lv_last_matno = gs_dmm090-matno.
+      "matno에 따른 정보를 저장해야함
+      gs_pp090-matno = gs_dmm090-matno.
+      gs_pp090-unit = gs_dmm090-unit. "유닛
+      gs_pp090-quantity = gs_dmm090-quantity. "수량
+      "가격
+      SELECT SINGLE prototal FROM zbbt_pp040 INTO lv_price WHERE matno EQ gs_dmm090-matno.
+      "총 가격
+      gs_pp090-totalmt = lv_price * gs_pp090-quantity.
+
+      SELECT SINGLE bomno FROM zbbt_pp040 INTO gs_pp090-bomno WHERE matno EQ gs_dmm090-matno.
+
+      lv_quantity = gs_dmm090-quantity. "quantity 로컬 변수에 넣기
+
+      APPEND gs_pp090 TO gt_pp090. "gt에 새로운 데이터 추가
+
+    ELSE."만약 matno가 같을 때
+      lv_matno = gs_dmm090-matno. "로컬변수에 matno값 할당
+      lv_quantity += gs_dmm090-quantity. "앞서 더한 변수에 추가로 수량 더함
+      lv_total = lv_price * lv_quantity. "로컬 total값 업데이트
+
+      "gt테이블 값 중에서 matno랑 같은애의 데이터 modify로 업뎃
+      LOOP AT gt_pp090 INTO gs_pp090.
+        IF gs_pp090-matno EQ lv_matno.
+          gs_pp090-totalmt = lv_total.
+          gs_pp090-quantity = lv_quantity.
+          MODIFY gt_pp090 FROM gs_pp090 TRANSPORTING totalmt quantity.
+        ENDIF.
+      ENDLOOP.
+    ENDIF.
+    ls_mm090-batchno = gs_dmm090-batchno.
+    ls_mm090-mdelflag = '2'.
+    ls_mm090-update_dt = sy-datum.
+    ls_mm090-update_tm = sy-uzeit.
+    ls_mm090-uuser = sy-uname.
+    MODIFY lt_mm090 FROM ls_mm090 TRANSPORTING mdelflag update_dt update_tm uuser WHERE batchno EQ gs_dmm090-batchno.
+<font color ="#0000FF">*    UPDATE zbbt_mm090 SET mdelflag = '2' WHERE batchno EQ gs_dmm090-batchno AND storno EQ 'BYW003'.</font>
+  ENDLOOP.
+    MODIFY zbbt_mm090 FROM TABLE lt_mm090.
+
+    IF sy-subrc = 0.
+      MESSAGE i120. "'폐기 처리 완료' TYPE 'I'.
+    ELSE.
+      MESSAGE e121.
+    ENDIF.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form fill_dynnr</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM fill_dynnr .
+  CASE my_tabstrip-activetab.
+    WHEN 'FCGET'.
+      dynnr = '0110'.
+    WHEN 'FCSET'.
+      dynnr = '0130'.
+    WHEN OTHERS.
+      dynnr = '0110'. "디폴트 값 없이 최초 실행 시 호출
+  ENDCASE.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form user_command_0111</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM user_command_0111 .
+  CASE ok_code.
+   WHEN 'OK'. "check 클릭
+      PERFORM go_disp. "출고처리
+      PERFORM refresh.
+      LEAVE TO SCREEN 0. "창닫기
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*     ENDIF.</font>
+    WHEN 'CANCEL'.
+      CLEAR: zbbt_pp080, gs_pp080.
+      LEAVE TO SCREEN 0.
+
+  ENDCASE.
+ENDFORM.
+FORM refresh.
+  CLEAR: zbbt_pp080.
+  PERFORM get_data.
+  PERFORM make_data.
+  CALL SCREEN 0100.
+  DATA : ls_stable TYPE lvc_s_stbl.
+  ls_stable-row = 'X'.
+  ls_stable-col = 'X'.
+  IF go_alv_grid1 IS NOT INITIAL.
+    CALL METHOD go_alv_grid1-&gt;refresh_table_display
+      EXPORTING
+        is_stable = ls_stable
+<font color ="#0000FF">*       I_SOFT_REFRESH =</font>
+      EXCEPTIONS
+        finished  = 1
+        OTHERS    = 2.
+    IF sy-subrc &lt;&gt; 0.
+<font color ="#0000FF">*          Implement suitable error handling here</font>
+    ENDIF.
+  ENDIF.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_no</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_no .
+  DATA: lv_nr TYPE zbbt_pp080-dispno,
+        lv_date TYPE sy-datum,
+        lv_no TYPE zbbt_pp080-dispno.
+
+  lv_date = sy-datum+2(6).
+
+  CALL FUNCTION 'NUMBER_GET_NEXT' " LV_NR에 넘버레인지 받아 오기
+            EXPORTING
+              nr_range_nr = '1'
+              object      = 'ZBB_DISPNO'
+            IMPORTING
+              number      = lv_nr
+            EXCEPTIONS
+              OTHERS      = 1.
+          IF sy-subrc &lt;&gt; 0.
+          ENDIF.
+
+          CONCATENATE 'DIS' lv_date lv_nr INTO lv_no.
+          gs_pp080-dispno = lv_no.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form icon_create</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      --&gt; ICON_NAME1</font>
+<font color ="#0000FF">*&      &lt;-- ICON1</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM icon_create  USING    p_cnt
+                  CHANGING p_icon.
+
+IF p_cnt &lt;= 50. "정상
+    p_icon = '@WH@'.
+  ELSEIF p_cnt &lt;= 100. "중간
+    p_icon = '@WI@'.
+  ELSE.
+    p_icon = '@WJ@'. "비정상
+  ENDIF.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form get_month_data</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM get_month_data .
+  DATA: lv_year TYPE i,
+        lv_month TYPE i,
+        lv_lmonth TYPE i,
+        lv_lyear TYPE i, "연 월 데이터
+
+        lv_tlyymm TYPE string, "yymm text
+
+        lv_lmonth_txt TYPE c LENGTH 2,
+        lv_lyear_txt TYPE c LENGTH 4,
+
+        lv_month_txt TYPE c LENGTH 2,
+        lv_year_txt TYPE c LENGTH 4,
+
+        lv_pmonth_cnt TYPE string,
+        lv_lmonth_cnt TYPE string.
+
+
+  lv_year = sy-datum+0(4).  " 연도 추출
+  lv_month = sy-datum+4(2). " 월 추출
+
+  lv_lmonth = lv_month - 1.
+  IF lv_lmonth = 0.
+    lv_lmonth = 12.  " 1월에서 전월은 12월로 처리
+    lv_lyear = lv_year - 1.  " 연도도 변경
+  ELSE.
+    lv_lyear = lv_year.
+  ENDIF.
+
+  IF lv_month NE 12 OR lv_month NE 11 OR lv_month NE 10 .
+    lv_month_txt = lv_month.
+    CONCATENATE '0' lv_month_txt INTO lv_month_txt.
+  ELSE.
+    lv_month_txt = lv_month.
+  ENDIF.
+
+  IF lv_lmonth NE 12 OR lv_lmonth NE 11 OR lv_lmonth NE 10 .
+    lv_lmonth_txt = lv_lmonth.
+    CONCATENATE '0' lv_lmonth_txt INTO lv_lmonth_txt.
+  ELSE.
+    lv_lmonth_txt = lv_lmonth.
+  ENDIF.
+
+  lv_lyear_txt = lv_lyear.
+  lv_year_txt = lv_year.
+
+  gv_tpyymm = sy-datum+0(6).
+
+  CONCATENATE lv_lyear_txt lv_lmonth_txt '%' INTO lv_tlyymm.
+  CONCATENATE gv_tpyymm '%' INTO gv_tpyymm.
+
+<font color ="#0000FF">*  SELECT SUM( a~quantity )</font>
+<font color ="#0000FF">*    INTO gv_previous_month_count</font>
+<font color ="#0000FF">*        FROM zbbt_mm090 AS a</font>
+<font color ="#0000FF">*        INNER JOIN zbbt_mm070 AS b</font>
+<font color ="#0000FF">*        ON a~batchno EQ b~batchno</font>
+<font color ="#0000FF">*        WHERE mdelflag EQ '3'</font>
+<font color ="#0000FF">*        AND indate LIKE lv_tlyymm</font>
+<font color ="#0000FF">*        AND a~storno EQ 'BYW003'.</font>
+
+SELECT SUM( a~quantity )
+    INTO gv_previous_month_count
+        FROM zbbt_pp090 AS a
+        INNER JOIN zbbt_pp080 AS b
+        ON a~dispno EQ b~dispno
+        WHERE DISPDAT LIKE lv_tlyymm.
+
+
+<font color ="#0000FF">*SELECT SUM( a~quantity )</font>
+<font color ="#0000FF">*    INTO gv_current_month_count</font>
+<font color ="#0000FF">*        FROM zbbt_pp090 AS a</font>
+<font color ="#0000FF">*        INNER JOIN zbbt_pp080 AS b</font>
+<font color ="#0000FF">*        ON a~dispno EQ b~dispno</font>
+<font color ="#0000FF">*        WHERE DISPDAT LIKE gv_tpyymm.</font>
+
+  SELECT SUM( a~quantity )
+    INTO gv_current_month_count
+        FROM zbbt_mm090 AS a
+        INNER JOIN zbbt_mm070 AS b
+        ON a~batchno EQ b~batchno
+        WHERE mdelflag NE '1'
+       and indate LIKE gv_tpyymm
+        AND a~storno EQ 'BYW003'.
+
+  lv_pmonth_cnt = gv_current_month_count.
+  gv_pmonth = lv_pmonth_cnt.
+
+  lv_lmonth_cnt = gv_previous_month_count.
+  gv_lmonth = lv_lmonth_cnt.
+
+
+  CONCATENATE lv_lyear_txt '년' lv_lmonth_txt '월: ' INTO gv_lmonth_txt.
+  CONCATENATE lv_year_txt '년' lv_month_txt '월: ' INTO gv_pmonth_txt.
+
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form save_disp</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM save_disp .
+  DATA: answer TYPE c LENGTH 1,
+        lv_no TYPE zbbt_pp080-dispno,
+        ls_mm090 TYPE zbbt_mm090,
+        lt_mm090 TYPE TABLE OF zbbt_mm090,
+        ls_pp090 type zbbt_pp090.
+
+  IF gs_pp080 IS INITIAL OR gt_pp090 IS INITIAL.
+            MESSAGE i122.
+            LEAVE SCREEN.
+  ENDIF.
+
+
+  CALL FUNCTION 'POPUP_TO_CONFIRM'
+        EXPORTING
+          titlebar              = '폐기 반영'
+          text_question         = '폐기를 확정하시겠습니까?'
+          text_button_1         = '네'(001)
+          icon_button_1         = '@01@'
+          text_button_2         = '아니요'(002)
+          icon_button_2         = '@02@'
+          display_cancel_button = ''
+        IMPORTING
+          answer                = answer.
+      IF sy-subrc &lt;&gt; 0. " 팝업 로드 자체에 오류 발생했을 때
+        MESSAGE w123.
+      ELSE. "팝업 로드 시에는 오류 ㄴㄴ
+        IF answer EQ '1'. "만약 네를 클릭했을 때
+          PERFORM set_no. "레인지 넘버 할당
+          lv_no = gs_pp080-dispno.
+          LOOP AT gt_pp090 INTO gs_pp090.
+            gs_pp090-dispno = lv_no. "폐기번호 생성
+            gs_pp090-create_dt = sy-datum.
+            gs_pp090-create_tm = sy-uzeit.
+            gs_pp090-cuser = sy-uname.
+            MODIFY gt_pp090 FROM gs_pp090.
+          ENDLOOP.
+          LOOP AT gt_dmm090 INTO gs_dmm090.
+            SELECT SINGLE * FROM zbbt_mm090 INTO ls_mm090 WHERE batchno EQ gs_dmm090-batchno.
+            ls_mm090-mdelflag = '3'.
+            ls_mm090-quantity = 0.
+            ls_mm090-update_dt  = sy-datum.
+            ls_mm090-update_tm = sy-uzeit.
+            ls_mm090-uuser = sy-uname.
+            APPEND ls_mm090 TO lt_mm090.
+<font color ="#0000FF">*            UPDATE zbbt_mm090 SET mdelflag = '3' WHERE batchno EQ gs_dmm090-batchno AND storno EQ 'BYW003'.</font>
+<font color ="#0000FF">*            UPDATE zbbt_mm090 SET quantity = 0 WHERE batchno EQ gs_dmm090-batchno AND storno EQ 'BYW003'.</font>
+          ENDLOOP.
+          gs_pp080-create_dt = sy-datum.
+          gs_pp080-create_tm = sy-uzeit.
+          gs_pp080-cuser = sy-uname.
+
+          MODIFY zbbt_pp080 FROM gs_pp080.
+          MODIFY zbbt_pp090 FROM TABLE gt_pp090.
+          MODIFY zbbt_mm090 FROM TABLE lt_mm090.
+
+          "modify시 오류 발생 여부 판단
+          IF sy-subrc = 0. "오류 ㄴㄴ
+            MESSAGE s124 WITH '확정'.
+            LOOP AT gt_pp090 into ls_pp090.
+              call function <a href ="zbb_fi_post_document_qm/zbb_fi_post_document_qm.html">'ZBB_FI_POST_DOCUMENT_QM'</a>
+              EXPORTING
+                iv_dispno         = gs_pp080-dispno
+                iv_dispdat        = gs_pp080-dispdat
+                iv_matno          = ls_pp090-matno
+                iv_quantity       = ls_pp090-quantity
+                iv_unit           = ls_pp090-unit
+                iv_totalmt        = ls_pp090-totalmt
+                iv_currency       = gs_pp080-currency
+                iv_tcode          = sy-tcode.
+            ENDLOOP.
+
+<font color ="#0000FF">*</font>
+            PERFORM clear_data.
+            PERFORM refresh.
+          ELSE. "modify 오류 ㅇㅇ
+            MESSAGE w125 WITH '확정이'.
+          ENDIF.
+        ELSE. " =2 아니오 버튼 클릭 시, (cancel 사용안하니까)
+          MESSAGE s126 WITH '확정이'.
+        ENDIF.
+      ENDIF.
+
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form undo_disp</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM undo_disp .
+  DATA: answer TYPE c LENGTH 1,
+        ls_mm090 TYPE zbbt_mm090,
+        lt_mm090 TYPE TABLE OF zbbt_mm090.
+
+  IF gs_pp080 IS INITIAL OR gt_pp090 IS INITIAL.
+            MESSAGE i122.
+            LEAVE SCREEN.
+  ENDIF.
+
+  CALL FUNCTION 'POPUP_TO_CONFIRM'
+        EXPORTING
+          titlebar              = '폐기 반영 확인'
+          text_question         = '폐기 반영을 취소하시겠습니니까?'
+          text_button_1         = '네'(001)
+          icon_button_1         = '@01@'
+          text_button_2         = '아니요'(002)
+          icon_button_2         = '@02@'
+          display_cancel_button = ''
+        IMPORTING
+          answer                = answer.
+      IF sy-subrc &lt;&gt; 0. " 팝업 로드 자체에 오류 발생했을 때
+        MESSAGE w123.
+      ELSE. "팝업 로드 시에는 오류 ㄴㄴ
+        IF answer EQ '1'. "만약 네를 클릭했을 때
+          LOOP AT gt_dmm090 INTO gs_dmm090.
+            SELECT SINGLE * FROM zbbt_mm090 INTO ls_mm090 WHERE batchno EQ gs_dmm090-batchno.
+            ls_mm090-mdelflag = '0'.
+            ls_mm090-update_dt  = sy-datum.
+            ls_mm090-update_tm = sy-uzeit.
+            ls_mm090-uuser = sy-uname.
+            APPEND ls_mm090 TO lt_mm090.
+          ENDLOOP.
+
+          modify zbbt_mm090 from table lt_mm090.
+
+          "modify시 오류 발생 여부 판단
+          IF sy-subrc = 0. "오류 ㄴㄴ
+            MESSAGE s124 WITH '취소'.
+            PERFORM clear_data.
+            PERFORM refresh.
+          ELSE. "modify 오류 ㅇㅇ
+            MESSAGE w125 WITH '취소가'.
+          ENDIF.
+        ELSE. " =2 아니오 버튼 클릭 시, (cancel 사용안하니까)
+          MESSAGE s126 WITH '취소가'.
+        ENDIF.
+      ENDIF.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form clear_data</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM clear_data .
+  CLEAR: gs_dmm090, gt_dmm090, gs_pp090, gt_pp090, gs_pp080, gt_pp080.
+ENDFORM.
+
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_sorting</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_sorting .
+
+      gs_sort-fieldname = 'INDATE'.
+      gs_sort-spos      = 1.
+      APPEND gs_sort TO gt_sort.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form check_data</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM check_data .
+  DATA: lv_indate TYPE zbbt_mm070-indate,
+        lv_matno TYPE zbbt_mm090-matno.
+
+  IF zbbt_mm070-indate IS NOT INITIAL.
+    SELECT SINGLE indate INTO lv_indate
+        FROM zbbt_mm070
+        WHERE indate = zbbt_mm070-indate.
+      IF sy-subrc &lt;&gt; 0.
+        MESSAGE s105 WITH '입고일' DISPLAY LIKE 'E'.
+      ENDIF.
+  ENDIF.
+
+  IF zbbt_mm090-matno IS NOT INITIAL.
+    SELECT SINGLE matno INTO lv_matno
+        FROM zbbt_mm090
+        WHERE matno = zbbt_mm090-matno.
+      IF sy-subrc &lt;&gt; 0.
+        MESSAGE s105 WITH '자재코드' DISPLAY LIKE 'E'.
+      ENDIF.
+  ENDIF.
+ENDFORM.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

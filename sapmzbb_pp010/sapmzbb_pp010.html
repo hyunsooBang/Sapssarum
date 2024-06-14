@@ -1,0 +1,71 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>SAPMZBB_PP010</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: SAPMZBB_PP010</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  [SAP ssarum-PP] 생산 검수 관리</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Module Pool SAPMZBB_PP010</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& PROGRAM ID  : SAPMZBB_PP010</font>
+<font color ="#0000FF">*& DESCRIPTION : 생산 검수 관리</font>
+<font color ="#0000FF">*& MODULE      : PP</font>
+<font color ="#0000FF">*& DEVELOPER   : ACA2-15 (방현수)</font>
+<font color ="#0000FF">*& CREATED DATE: 2024.04.16</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& MODIFIED HISTORY :</font>
+<font color ="#0000FF">*& DEVELOPER       DATE             DESCRIPTION</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+<font color ="#0000FF">*  ACA2-15        2024.04.16         신규 개발</font>
+<font color ="#0000FF">*  ACA2-15        2024.04.17         주요 기능 개발</font>
+<font color ="#0000FF">*  ACA2-15        2024.04.18         마무리 개발</font>
+<font color ="#0000FF">*  ACA2-15        2024.04.23         생산실적 넘버레인지</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+
+include <a href ="mzbb_pp010_top.html">mzbb_pp010_top</a>.    " Global Data
+include <a href ="mzbb_pp010_c01.html">mzbb_pp010_c01</a>.
+
+" 모듈풀에서 alv 띄울 때 pbo쪽에 get_data (select 데이터가꼬오기)
+" display_container 전부 선언하기
+" sapmzbb_sd010 참고
+include <a href ="mzbb_pp010_o01.html">mzbb_pp010_o01</a>.  " PBO-Modules
+include <a href ="mzbb_pp010_i01.html">mzbb_pp010_i01</a>.  " PAI-Modules
+include <a href ="mzbb_pp010_f01.html">mzbb_pp010_f01</a>.  " FORM-Routines
+
+<font color ="#0000FF">*GUI Texts</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* TITLE_100 --&gt; [SAP ssarum-PP] 생산 검수 관리</font>
+<font color ="#0000FF">* TITLE_110 --&gt; [SAP ssarum-PP] 생산 검수 처리</font>
+<font color ="#0000FF">* TITLE_120 --&gt; 폐기 사유</font>
+
+
+<font color ="#0000FF">*Messages</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">* Message class: BC405_408</font>
+<font color ="#0000FF">*010   Error creating the container object</font>
+<font color ="#0000FF">*012   Error calling the method.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">* Message class: ZBB_MSG</font>
+<font color ="#0000FF">*105   유효한 & 데이터 값을 입력해주세요.</font>
+<font color ="#0000FF">*106   &를 진행할 &를 선택하세요.</font>
+<font color ="#0000FF">*107   조회된 데이터가 존재하지 않습니다.</font>
+<font color ="#0000FF">*108   한 건씩만 선택하세요.</font>
+<font color ="#0000FF">*113   모든 데이터를 입력하세요.</font>
+<font color ="#0000FF">*114   폐기사유가 입력되었습니다.</font>
+<font color ="#0000FF">*115   폐기사유를 입력하세요.</font>
+<font color ="#0000FF">*116   검수처리가 완료되었습니다.</font>
+<font color ="#0000FF">*117   검수처리에 실패했습니다.</font>
+<font color ="#0000FF">*118   업데이트 완료</font>
+<font color ="#0000FF">*119   업데이트 실패</font>
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

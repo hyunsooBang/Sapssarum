@@ -1,0 +1,215 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>MZBB_PP030_TOP</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: MZBB_PP030_TOP</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZBB_PP010_TOP</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          ZBB_PP010_TOP</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+
+PROGRAM sapmzbb_mm030 MESSAGE-ID ZBB_MSG.
+
+TABLES: zbbt_pp070,  zbbt_mm070, zbbt_pp050, zbbt_pp060, zbbt_mm080, zbbt_mm020, zbbt_mm090, zbbt_sd040, zbbt_mm085.
+TABLES: zbbt_pp080, zbbt_pp090, zbbt_sd090.
+
+DATA: ok_code LIKE sy-ucomm , "ok code
+
+      dynnr TYPE sy-dynnr. "화면 지정 번호
+<font color ="#0000FF">*</font>
+
+DATA: gs_mm020 TYPE zbbt_mm020, "재고명
+
+      gs_mm080 TYPE zbbt_mm080, "출고
+      gt_mm080 TYPE TABLE OF zbbt_mm080,
+
+
+      gs_mm085 TYPE zbbt_mm085, "출고 아이템
+      gt_mm085 TYPE TABLE OF zbbt_mm085,
+
+
+      gs_mm090 TYPE zbbt_mm090, "재고
+      gt_mm090 TYPE TABLE OF zbbt_mm090,
+
+      gs_pp050 TYPE zbbt_pp050, "bom
+      gt_pp050 TYPE TABLE OF zbbt_pp050,
+
+      gs_sd050 TYPE zbbt_sd050, "제품 주문 아이템
+      gt_sd050 TYPE TABLE OF zbbt_sd050.
+
+
+DATA: BEGIN OF gs_dmm090.
+DATA: indate TYPE zbbt_mm070-indate,
+      purordno TYPE zbbt_mm090-purordno,
+      performno TYPE zbbt_mm090-performno,
+      batchno TYPE zbbt_mm090-batchno,
+      matno TYPE zbbt_mm090-matno,
+      defptype TYPE zbbt_mm090-defptype,
+      quantity TYPE zbbt_mm090-quantity,
+      unit TYPE zbbt_mm090-unit,
+      disptxt TYPE zbbt_pp070-disptxt,
+      matnm TYPE zbbt_mm020-matnm,
+      mdelflag TYPE zbbt_mm090-mdelflag,
+      defptype_txt TYPE string,
+      color TYPE c LENGTH 4,
+      END OF gs_dmm090,
+      gt_dmm090 LIKE TABLE OF gs_dmm090.
+
+DATA: gs_pp080 TYPE zbbt_pp080,
+      gt_pp080 LIKE TABLE OF gs_pp080,
+
+      gs_pp090 TYPE zbbt_pp090,
+      gt_pp090 LIKE TABLE OF gs_pp090.
+
+DATA: BEGIN OF gs_pp090_s.
+  include structure <a href ="zbbt_pp090/dictionary-zbbt_pp090.html">zbbt_pp090</a>.
+DATA: matnm TYPE zbbt_mm020-matnm,
+      currency TYPE zbbt_pp080-currency,
+      END OF gs_pp090_s,
+      gt_pp090_s LIKE TABLE OF gs_pp090_s.
+
+
+
+
+DATA: BEGIN OF gs_mm080_v.
+  include structure <a href ="zbbt_mm080/dictionary-zbbt_mm080.html">zbbt_mm080</a>. "출고(보기전용)
+DATA: matnm TYPE zbbt_mm020-matnm,
+      status TYPE c LENGTH 1,
+      outtypetxt TYPE string,
+      END OF gs_mm080_v,
+      gt_mm080_v LIKE TABLE OF gs_mm080_v.
+
+DATA: BEGIN OF gs_mm085_v.
+  include structure <a href ="zbbt_mm085/dictionary-zbbt_mm085.html">zbbt_mm085</a>. "출고 아이템(보기전용)
+DATA: matnm TYPE zbbt_mm020-matnm,
+      END OF gs_mm085_v,
+      gt_mm085_v LIKE TABLE OF gs_mm085_v.
+
+<font color ="#0000FF">*      gs_mm085_v type gs_mm085_v, "출고 아이템(보기전용)</font>
+<font color ="#0000FF">*      gt_mm085_v like TABLE of gs_mm085_v,</font>
+
+DATA: BEGIN OF gs_pp060,
+      status    TYPE c LENGTH 1,
+      color(4),
+      porderno TYPE zbbt_pp060-porderno,
+      plantno TYPE zbbt_pp060-plantno,
+      matno TYPE zbbt_pp060-matno,
+      bomno TYPE zbbt_pp060-bomno,
+      matnm TYPE zbbt_mm020-matnm,
+      pordwdat TYPE zbbt_pp060-pordwdat,
+      poutput TYPE zbbt_pp060-poutput,
+      unit TYPE zbbt_pp060-unit,
+      orstatus TYPE zbbt_pp060-orstatus,
+       END OF gs_pp060.
+DATA: gt_pp060 LIKE TABLE OF gs_pp060.
+
+
+DATA: BEGIN OF gs_sd040.
+      include structure <a href ="zbbt_sd040/dictionary-zbbt_sd040.html">zbbt_sd040</a>.
+DATA: status TYPE c LENGTH 1,
+      color(4),
+      ordertype TYPE string,
+      outno TYPE zbbt_mm080-outno,
+      matno TYPE zbbt_mm080-matno,
+      matnm TYPE zbbt_mm020-matnm,
+      outflag TYPE zbbt_mm080-outflag,
+      END OF gs_sd040.
+DATA: gt_sd040 LIKE TABLE OF gs_sd040.
+
+DATA: go_alv_grid1  TYPE REF TO cl_gui_alv_grid, "tab별 그리드 컨테이너
+      go_container1 TYPE REF TO cl_gui_custom_container,
+
+      go_alv_grid2 TYPE REF TO cl_gui_alv_grid,
+      go_container2 TYPE REF TO cl_gui_custom_container,
+
+<font color ="#0000FF">* -----tab 3 전용 split data</font>
+      go_container3 TYPE REF TO cl_gui_custom_container,
+      go_docking   TYPE REF TO cl_gui_docking_container, "global object 선언
+      go_split       TYPE REF TO cl_gui_splitter_container.
+
+DATA: go_cont1  TYPE REF TO cl_gui_container,
+      go_cont2 TYPE REF TO cl_gui_container.
+
+DATA: go_cont3  TYPE REF TO cl_gui_container,
+      go_cont4 TYPE REF TO cl_gui_container.
+
+
+DATA: go_alv_grid3 TYPE REF TO cl_gui_alv_grid,
+      go_alv_grid4 TYPE REF TO cl_gui_alv_grid.
+
+
+
+" layout을 위해 필요한 data
+DATA: gs_layout      TYPE lvc_s_layo,
+      gs_layout2      TYPE lvc_s_layo, "split 1
+      gs_layout3      TYPE lvc_s_layo.
+
+" cell color
+DATA: gs_field_color TYPE lvc_s_scol.
+
+"filter
+DATA: gs_filter TYPE lvc_s_filt,
+      gt_filter TYPE lvc_t_filt.
+
+"Sort
+DATA : gs_sort TYPE lvc_s_sort,
+       gt_sort TYPE lvc_t_sort.
+
+" field catalog
+DATA : gs_fcat TYPE lvc_s_fcat,
+       gt_fcat TYPE lvc_t_fcat,
+       gt_fcat_order TYPE lvc_t_fcat,
+       gt_fcat_view1 TYPE lvc_t_fcat, "split 1
+       gt_fcat_view2 TYPE lvc_t_fcat.
+
+<font color ="#0000FF">* Class</font>
+CLASS: lcl_event_handler DEFINITION DEFERRED.
+DATA: go_handler TYPE REF TO lcl_event_handler.
+
+
+"레이아웃 요소
+DATA: gv_r1 VALUE 'X',
+      gv_r2,
+      gv_r3.
+
+DATA: gv_disptotal TYPE zbbt_pp080-disptotal.
+
+DATA: icon1 TYPE icons-text, "icon name (Screen icon)
+      icon2 TYPE icons-text, "icon name (Screen icon)
+
+      gv_lmonth TYPE string,
+      gv_pmonth TYPE string,
+      gv_lmonth_txt TYPE string,
+      gv_pmonth_txt TYPE string,
+      gv_tpyymm TYPE string,
+
+      gv_current_month_count TYPE i,
+      gv_previous_month_count TYPE i,
+
+      gv_pmonth_pop TYPE string,
+      gv_count TYPE i.
+
+
+<font color ="#0000FF">*"select - where 동적변수</font>
+DATA:  gv_where1 TYPE string,
+      gv_where2 TYPE string,
+      gv_where3 TYPE string,
+
+      gv_where1_ord TYPE string,
+      gv_where2_ord TYPE string,
+      gv_where3_ord TYPE string.
+
+DATA: gv_rowid TYPE i.
+
+CONTROLS: my_tabstrip TYPE TABSTRIP.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>
