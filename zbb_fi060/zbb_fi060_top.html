@@ -1,0 +1,50 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZBB_FI060_TOP</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZBB_FI060_TOP</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZBB_FI060_C3_TOP</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          ZBB_FI060_C3_TOP</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+
+TABLES: zbbv_fi010.
+
+data: tree1         type ref to cl_gui_alv_tree,
+      g_custom_container type ref to cl_gui_custom_container,
+      mr_toolbar          type ref to cl_gui_toolbar.
+
+data: gt_fi010v type zbbv_fi010 occurs 0.     "Output-Table
+
+DATA: gs_fcat type lvc_s_fcat,
+      gt_fieldcatalog type lvc_t_fcat,
+      gs_layout type lvc_s_layo,
+      gs_sort type lvc_s_sort,
+      gv_title1 type string,
+      gv_title2 type string,
+
+      ok_code like sy-ucomm,
+      save_ok like sy-ucomm,           "OK-Code
+      g_max type i value 255,
+      g_last_key type lvc_nkey.
+
+
+<font color ="#0000FF">******</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& screen</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+SELECTION-SCREEN BEGIN OF BLOCK bl WITH FRAME TITLE TEXT-t01.
+  PARAMETERS: pa_co LIKE zbbv_fi010-compno OBLIGATORY MEMORY ID memid1 DEFAULT '2000',
+              pa_fi LIKE zbbv_fi010-fiyear OBLIGATORY MEMORY ID memid DEFAULT '2024'.
+SELECTION-SCREEN END OF BLOCK bl.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

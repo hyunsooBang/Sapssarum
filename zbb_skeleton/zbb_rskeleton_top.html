@@ -1,0 +1,76 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZBB_RSKELETON_TOP</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZBB_RSKELETON_TOP</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZBB_RSKELETON_TOP</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          ZBB_RSKELETON_TOP</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+
+TABLES: sflight. "사용할 테이블 선언
+
+DATA: ok_code like sy-ucomm.
+
+DATA: gs_sflight type sflight,
+      gt_sflight like table of gs_sflight.
+
+DATA: go_alv_grid TYPE REF TO cl_gui_alv_grid, "클래스 참조변수 선언
+      go_docking  TYPE REF TO cl_gui_docking_container, "global object 선언
+      go_container type ref to cl_gui_custom_container.
+
+<font color ="#0000FF">*DATA: gs_variant TYPE disvariant,</font>
+<font color ="#0000FF">*      gv_save.</font>
+" split용
+<font color ="#0000FF">*DATA : gc_grid TYPE REF TO cl_gui_alv_grid.</font>
+<font color ="#0000FF">*DATA : gc_grid2 TYPE REF TO cl_gui_alv_grid.</font>
+<font color ="#0000FF">*DATA : gc_docking TYPE REF TO cl_gui_docking_container.</font>
+<font color ="#0000FF">*DATA : gc_split TYPE REF TO cl_gui_splitter_container.</font>
+<font color ="#0000FF">*DATA : gc_container TYPE REF TO cl_gui_container.</font>
+<font color ="#0000FF">*DATA : gc_container2 TYPE REF TO cl_gui_container.</font>
+
+" layout을 위해 필요한 data
+DATA: gs_layout      TYPE lvc_s_layo.
+
+" cell color
+DATA: gs_field_color TYPE lvc_s_scol.
+
+"Sort
+DATA : gs_sort  TYPE lvc_s_sort.
+
+" field catalog
+DATA : gs_fcat TYPE lvc_s_fcat,
+       gt_fcat type lvc_t_fcat.
+
+<font color ="#0000FF">* event class</font>
+<font color ="#0000FF">*CLASS lcl_event DEFINITION DEFERRED.</font>
+<font color ="#0000FF">*DATA : go_event TYPE REF TO lcl_event.</font>
+
+<font color ="#0000FF">* screen 예시</font>
+
+SELECTION-SCREEN BEGIN OF BLOCK bl_opt .
+  PARAMETERS: p1 USER-COMMAND radio RADIOBUTTON GROUP cnt1 DEFAULT 'X', "sflight기본선택
+              p2 RADIOBUTTON GROUP cnt1.
+SELECTION-SCREEN END OF BLOCK bl_opt.
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*SELECTION-SCREEN SKIP 1.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*SELECTION-SCREEN BEGIN OF BLOCK bl_field WITH FRAME TITLE TEXT-tlf. "두번째 바뀌는 블락</font>
+<font color ="#0000FF">*  SELECT-OPTIONS: so_id FOR ztmember_b15-mb_id MODIF ID fg .</font>
+<font color ="#0000FF">*  PARAMETERS: pa_sta LIKE ztmember_b15-mb_st DEFAULT 'A' MODIF ID pf . "fg = 펑션코드</font>
+<font color ="#0000FF">*  "No.. 대신에 parameter로 해도 상관 ㄴ</font>
+<font color ="#0000FF">*  SELECT-OPTIONS: so_dat FOR ztrent_b15-rplan_dt MODIF ID pf .</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*SELECTION-SCREEN END OF BLOCK bl_field.</font>
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

@@ -1,0 +1,694 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZBB_FI060_F01</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZBB_FI060_F01</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZBB_FI060_C3_F01</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          ZBB_FI060_C3_F01</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Form  init_tree</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+<font color ="#0000FF">*  --&gt;  p1        text</font>
+<font color ="#0000FF">*  &lt;--  p2        text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+FORM init_tree.
+
+
+  PERFORM create_container. "컨테이너 생성
+  PERFORM create_tree. "트리 생성
+
+
+  DATA l_hierarchy_header TYPE treev_hhdr.
+  PERFORM build_hierarchy_header CHANGING l_hierarchy_header. "트리 헤더 생성
+  PERFORM build_fieldcatalog. "트리 숨김행, sum 등 설정 &lt;i_structure_name 변경&gt;
+
+  PERFORM call_tree USING l_hierarchy_header. "tree call &lt;it_outtab 변경&gt;
+  PERFORM create_hierarchy. "트리 노드 생성 (ㄹㅇ트리만들기) &lt;데이터베이스 및 로직 변경&gt;
+
+  PERFORM change_toolbar. "툴바
+  PERFORM register_events. "이벤트
+<font color ="#0000FF">* Update calculations which were initially defined by field DO_SUM</font>
+<font color ="#0000FF">* of the fieldcatalog. (see build_fieldcatalog).</font>
+  CALL METHOD tree1-&gt;update_calculations.
+
+<font color ="#0000FF">* Send data to frontend.</font>
+  CALL METHOD tree1-&gt;frontend_update.
+
+ENDFORM.                               " init_tree
+<font color ="#0000FF">*-----------------------------------------------------------------------</font>
+FORM change_toolbar.
+
+<font color ="#0000FF">* §2.Get toolbar instance of your ALV Tree.</font>
+<font color ="#0000FF">* When you instantiate an instance of CL_GUI_ALV_TREE the constructor</font>
+<font color ="#0000FF">* of the base class (CL_ALV_TREE_BASE) creates a toolbar.</font>
+<font color ="#0000FF">* Fetch its reference with the following method if you want to</font>
+<font color ="#0000FF">* modify it:</font>
+  CALL METHOD tree1-&gt;get_toolbar_object
+    IMPORTING
+      er_toolbar = mr_toolbar.
+
+  CHECK NOT mr_toolbar IS INITIAL. "could happen if you do not use the
+  "standard toolbar
+
+<font color ="#0000FF">* §3.Modify toolbar with methods of CL_GUI_TOOLBAR:</font>
+<font color ="#0000FF">*    §3a.Add seperator to toolbar</font>
+  CALL METHOD mr_toolbar-&gt;add_button
+    EXPORTING
+      fcode     = ''
+      icon      = ''
+      butn_type = cntb_btype_sep.
+
+<font color ="#0000FF">*    §3b.Add menu to toolbar (type 'cntb_btype_menu')</font>
+<font color ="#0000FF">* This is a pushbutton to drop down a context menu. Its function code</font>
+<font color ="#0000FF">* ('fcode') triggers always the event 'dropdown_clicked'.</font>
+  CALL METHOD mr_toolbar-&gt;add_button
+    EXPORTING
+      fcode     = 'INFO_MENU'
+      icon      = '@8P@'
+      butn_type = cntb_btype_menu
+      text      = ''
+      quickinfo = TEXT-901.    "Information
+ENDFORM.                    "change_toolbar
+<font color ="#0000FF">*--------------------------------------------------------------------</font>
+FORM register_events.
+  DATA: lt_events TYPE cntl_simple_events,
+        l_event TYPE cntl_simple_event,
+        l_event_receiver TYPE REF TO lcl_toolbar_event_receiver.
+
+<font color ="#0000FF">* Frontend registration: do not forget to register (for ALV Tree</font>
+<font color ="#0000FF">* mandatory) tree events.</font>
+
+<font color ="#0000FF">*................................................................</font>
+<font color ="#0000FF">* Tree events:</font>
+<font color ="#0000FF">* define the events which will be passed to the backend</font>
+<font color ="#0000FF">*  l_event-eventid = cl_gui_column_tree=&gt;eventid_node_context_menu_req.</font>
+<font color ="#0000FF">*  append l_event to lt_events.</font>
+<font color ="#0000FF">*  l_event-eventid = cl_gui_column_tree=&gt;eventid_item_context_menu_req.</font>
+<font color ="#0000FF">*  append l_event to lt_events.</font>
+<font color ="#0000FF">*  l_event-eventid = cl_gui_column_tree=&gt;eventid_header_context_men_req.</font>
+<font color ="#0000FF">*  append l_event to lt_events.</font>
+<font color ="#0000FF">*  l_event-eventid = cl_gui_column_tree=&gt;eventid_expand_no_children.</font>
+<font color ="#0000FF">*  append l_event to lt_events.</font>
+<font color ="#0000FF">*  l_event-eventid = cl_gui_column_tree=&gt;eventid_header_click.</font>
+<font color ="#0000FF">*  append l_event to lt_events.</font>
+<font color ="#0000FF">*  l_event-eventid = cl_gui_column_tree=&gt;eventid_item_keypress.</font>
+<font color ="#0000FF">*  append l_event to lt_events.</font>
+<font color ="#0000FF">* Nevertheless you have to provide their IDs again if you register</font>
+<font color ="#0000FF">* additional events with SET_REGISTERED_EVENTS (see below).</font>
+<font color ="#0000FF">* To do so, call first method  GET_REGISTERED_EVENTS (this way,</font>
+<font color ="#0000FF">* all already registered events remain registered, even your own):</font>
+  CALL METHOD tree1-&gt;get_registered_events
+    IMPORTING
+      events = lt_events.
+
+<font color ="#0000FF">* (If you do not these events will be deregistered!!!).</font>
+<font color ="#0000FF">* You do not have to register events of the toolbar again.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">* Toolbar events:</font>
+<font color ="#0000FF">* Note that the instance of your ALV Tree Control registers the toolbar</font>
+<font color ="#0000FF">* events on frontend as application events (within the constructor).</font>
+<font color ="#0000FF">* You do not have to register events of the toolbar again.</font>
+
+<font color ="#0000FF">* register events on frontend</font>
+  CALL METHOD tree1-&gt;set_registered_events
+    EXPORTING
+      events                    = lt_events
+    EXCEPTIONS
+      cntl_error                = 1
+      cntl_system_error         = 2
+      illegal_event_combination = 3.
+  IF sy-subrc &lt;&gt; 0.
+    MESSAGE x208(00) WITH 'ERROR'.                          "#EC NOTEXT
+  ENDIF.
+<font color ="#0000FF">*-------------------------------------------------------------------</font>
+<font color ="#0000FF">* §8. Register toolbar events on backend (ABAP Objects</font>
+<font color ="#0000FF">*     event handling).</font>
+<font color ="#0000FF">* Note that the instance of your ALV Tree Control registers the toolbar</font>
+<font color ="#0000FF">* events on frontend as application events (within the constructor).</font>
+  CREATE OBJECT l_event_receiver.
+  SET HANDLER l_event_receiver-&gt;on_function_selected FOR mr_toolbar.
+  SET HANDLER l_event_receiver-&gt;on_dropdown_clicked FOR mr_toolbar.
+<font color ="#0000FF">*  set handler l_event_receiver-&gt;on_add_acctclhierarchy_node for tree1.</font>
+
+ENDFORM.                                   " register_events
+<font color ="#0000FF">*#######################################################################</font>
+<font color ="#0000FF">*#######################################################################</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Form  build_hierarchy_header</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       build hierarchy-header-information</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+<font color ="#0000FF">*      --&gt;P_L_HIERARCHY_HEADER  strucxture for hierarchy-header</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+FORM build_hierarchy_header CHANGING
+                               p_hierarchy_header TYPE treev_hhdr.
+
+  p_hierarchy_header-heading = '회사코드/계정그룹/계정구분/계정과목'.
+  p_hierarchy_header-tooltip = '재무상태표 구분'.
+  p_hierarchy_header-width = 34.
+  p_hierarchy_header-width_pix = ''.
+
+ENDFORM.                               " build_hierarchy_header
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Form  exit_program</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       free object and leave program</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+FORM exit_program.
+
+  CALL METHOD g_custom_container-&gt;free.
+  LEAVE PROGRAM.
+
+ENDFORM.                               " exit_program
+<font color ="#0000FF">*--------------------------------------------------------------------</font>
+FORM build_fieldcatalog.
+  CALL FUNCTION 'LVC_FIELDCATALOG_MERGE'
+    EXPORTING
+      i_structure_name = 'ZBBV_FI010' "데이터베이스
+    CHANGING
+      ct_fieldcat      = gt_fieldcatalog.
+
+<font color ="#0000FF">* 필드카탈로그 설정</font>
+  PERFORM set_fcat.
+
+
+<font color ="#0000FF">* The fieldcatalog is provided in form 'init_tree' using method</font>
+
+ENDFORM.                               " build_fieldcatalog
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Form  create_hierarchy</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+<font color ="#0000FF">*  --&gt;  p1        text</font>
+<font color ="#0000FF">*  &lt;--  p2        text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+FORM create_hierarchy.
+<font color ="#0000FF">* See BCALV_TREE_01 for more comments on building the hierarchy</font>
+  DATA: ls_fi010v TYPE zbbv_fi010,
+        lt_fi010v TYPE zbbv_fi010 OCCURS 0, "wa 및 itab 선언
+        lv_where TYPE string,
+        l_node_text TYPE lvc_value,
+
+        l_acctcl LIKE zbbv_fi010-acctcl, "1단계 묶기
+        l_acctcl_last LIKE zbbv_fi010-acctcl,
+
+        l_acctca LIKE zbbv_fi010-acctca, "2단계 묶기
+        l_acctca_last LIKE zbbv_fi010-acctca,
+
+        l_acctnm LIKE zbbv_fi010-acctnm, "3단계 묶기
+        l_acctnm_last LIKE zbbv_fi010-acctnm.
+
+"전체데이터 &gt; 폴더1 &gt; 폴더2 &gt; 폴더3 &gt; 데이터 (필요에 맞게 구성)
+  DATA: l_top_key TYPE lvc_nkey, "root 회사코드
+        l_cl_key TYPE lvc_nkey, "1 계정그룹
+        l_ca_key TYPE lvc_nkey, "2 계정구분
+        l_nm_key TYPE lvc_nkey, "3 계정명
+        l_last_key TYPE lvc_nkey,
+        lv_string TYPE string,
+        test TYPE string. "마지막 한줄씩
+
+
+<font color ="#0000FF">* Select data</font>
+  SELECT * FROM zbbv_fi010
+    INTO CORRESPONDING FIELDS OF TABLE lt_fi010v "lt_fi010v
+    UP TO g_max ROWS
+    WHERE compno EQ pa_co AND fiyear EQ pa_fi.
+
+
+
+<font color ="#0000FF">* 묶을 계층 순서대로 sort 1, 2, 3</font>
+  SORT lt_fi010v BY acctcl acctca acctnm.
+
+<font color ="#0000FF">* Define one top node. In this way it is possible to calculate</font>
+<font color ="#0000FF">* values for the whole hierarchy.</font>
+  "첫번째 노트 (전체)
+  l_node_text = pa_co.
+
+  CALL METHOD tree1-&gt;add_node
+    EXPORTING
+      i_relat_node_key = ''
+      i_relationship   = cl_gui_column_tree=&gt;relat_last_child
+      i_node_text      = l_node_text
+    IMPORTING
+      e_new_node_key   = l_top_key.
+
+
+  "계층 생성"
+  LOOP AT lt_fi010v INTO ls_fi010v.
+    l_acctcl = ls_fi010v-acctcl.
+    l_acctca = ls_fi010v-acctca.
+    l_acctnm = ls_fi010v-acctnm.
+
+    "H일 때 -달아주기
+    IF ls_fi010v-dcind EQ 'H'.
+       lv_string = ls_fi010v-accprice.
+       CONCATENATE lv_string '-' INTO test.
+       ls_fi010v-accprice = test.
+    ENDIF.
+    MODIFY lt_fi010v FROM ls_fi010v.
+
+
+    "1단계 폴더
+    IF l_acctcl &lt;&gt; l_acctcl_last. "폴더여러개 생기는 거 방지. 전 값과 같으면 노두 생성하지 않음
+      l_acctcl_last = l_acctcl.
+    PERFORM add_acctcl USING
+                       l_acctcl
+                       l_top_key "전키
+                       CHANGING l_cl_key. "내키
+    ENDIF.
+
+    "2단계 폴더
+    IF l_acctca &lt;&gt; l_acctca_last.
+    l_acctca_last = l_acctca.
+
+    PERFORM add_acctca USING         l_acctca
+                                    l_cl_key"전키 (1단계)
+                           CHANGING l_ca_key."내키
+    ENDIF.
+
+    "3단계 폴더
+    IF l_acctnm &lt;&gt; l_acctnm_last.
+      l_acctnm_last = l_acctnm.
+
+      PERFORM add_acctnm USING  l_acctnm
+                                     l_ca_key"전키 (2단계)
+                            CHANGING l_nm_key."내키
+    ENDIF.
+
+<font color ="#0000FF">*   4단계 - Leaf: 데이터 한줄씩 넣기</font>
+    PERFORM add_line USING  ls_fi010v
+                                     l_nm_key "전키 (3단계)
+                            CHANGING l_last_key. "내키
+
+  ENDLOOP.
+
+<font color ="#0000FF">* expand first node initially</font>
+  CALL METHOD tree1-&gt;expand_node
+    EXPORTING
+      i_node_key = l_top_key.
+
+<font color ="#0000FF">* for 'nonsense':</font>
+  g_last_key = l_last_key.
+ENDFORM.                               " create_hierarchy
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form add_acctcl</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      --&gt; LS_FI010V</font>
+<font color ="#0000FF">*&      --&gt; L_TOP_KEY</font>
+<font color ="#0000FF">*&      &lt;-- l_cl_key</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM add_acctcl  USING    p_acctcl TYPE zbbv_fi010-acctcl
+                    p_relat_key TYPE lvc_nkey
+           CHANGING p_node_key TYPE lvc_nkey.
+
+  DATA: l_node_text TYPE lvc_value,
+        ls_fi010v TYPE zbbv_fi010.           "output string for month
+
+    CASE p_acctcl.
+      WHEN '1'.
+          l_node_text = '자산'.
+        WHEN '2'.
+          l_node_text = '부채'.
+        WHEN '3'.
+          l_node_text = '자본'.
+      ENDCASE.
+
+<font color ="#0000FF">* add node</font>
+  CALL METHOD tree1-&gt;add_node
+    EXPORTING
+      i_relat_node_key = p_relat_key
+      i_relationship   = cl_gui_column_tree=&gt;relat_last_child
+      i_node_text      = l_node_text
+      is_outtab_line   = ls_fi010v
+    IMPORTING
+      e_new_node_key   = p_node_key.
+
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Form  add_acctca</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM add_acctca  USING     p_acctca TYPE zbbv_fi010-acctca
+                          p_relat_key TYPE lvc_nkey
+                CHANGING  p_node_key TYPE lvc_nkey.
+
+  DATA: l_node_text TYPE lvc_value,
+        ls_sflight TYPE sflight,
+        ls_fi010v TYPE zbbv_fi010.           "output string for month
+
+
+    CASE p_acctca.
+      WHEN 'A'.
+        l_node_text = '매출채권'.
+      WHEN 'B'.
+        l_node_text = '현금'.
+      WHEN 'H'.
+        l_node_text = '재고자산'.
+      WHEN 'C'.
+        l_node_text = '매입채무'.
+      WHEN 'D'.
+        l_node_text = '차입금'.
+      WHEN OTHERS.
+        l_node_text = '이익잉여금'.
+    ENDCASE.
+
+<font color ="#0000FF">*   l_node_text = 'test2'.</font>
+
+<font color ="#0000FF">* add node</font>
+  CALL METHOD tree1-&gt;add_node
+    EXPORTING
+      i_relat_node_key = p_relat_key
+      i_relationship   = cl_gui_column_tree=&gt;relat_last_child
+      i_node_text      = l_node_text
+      is_outtab_line   = ls_fi010v "ls_sflight
+    IMPORTING
+      e_new_node_key   = p_node_key.
+
+ENDFORM.                               " add_acctca
+<font color ="#0000FF">*-----------------------------------------------------------------------</font>
+FORM add_acctnm USING     p_acctnm TYPE zbbv_fi010-acctnm
+                               p_relat_key TYPE lvc_nkey
+                     CHANGING  p_node_key TYPE lvc_nkey.
+
+  DATA: l_node_text TYPE lvc_value,
+        ls_sflight TYPE sflight,
+        ls_fi010v TYPE zbbv_fi010.
+
+<font color ="#0000FF">* add node</font>
+  l_node_text =  p_acctnm.
+  CALL METHOD tree1-&gt;add_node
+    EXPORTING
+      i_relat_node_key = p_relat_key
+      i_relationship   = cl_gui_column_tree=&gt;relat_last_child
+      i_node_text      = l_node_text
+      is_outtab_line   = ls_fi010v
+    IMPORTING
+      e_new_node_key   = p_node_key.
+
+ENDFORM.                               " add_acctnm
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Form  add_line</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM add_line USING   ps_fi010v TYPE zbbv_fi010
+                               p_relat_key TYPE lvc_nkey
+                     CHANGING  p_node_key TYPE lvc_nkey.
+
+  DATA: l_node_text TYPE lvc_value.
+
+  WRITE ps_fi010v-acctnm TO l_node_text.
+
+  CALL METHOD tree1-&gt;add_node
+    EXPORTING
+      i_relat_node_key = p_relat_key
+      i_relationship   = cl_gui_column_tree=&gt;relat_last_child
+      is_outtab_line   = ps_fi010v
+      i_node_text      = l_node_text
+    IMPORTING
+      e_new_node_key   = p_node_key.
+
+ENDFORM.                               " complete_line
+                            " GET_MONTH
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Form  call_html_help</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+<font color ="#0000FF">*  --&gt;  p1        text</font>
+<font color ="#0000FF">*  &lt;--  p2        text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+FORM call_html_help.
+  DATA: linkpar1 LIKE iwreferenc-spec_prg
+                        VALUE 'SAPLWB_INITIAL_TOOL',
+              linkpar2 LIKE iwreferenc-spec_text
+                        VALUE 'BUSINESS_HTML_HELP'.
+
+  linkpar1 = 'BCALV_TREE_05'.
+  linkpar2 = 'TOOLBAR'.
+
+  CALL FUNCTION 'IWB_HTML_HELP_OBJECT_SHOW'
+    EXPORTING
+      program                          = linkpar1
+      extension                        = linkpar2
+   EXCEPTIONS
+     object_not_found                  = 1
+     rfc_error                         = 2
+     no_profil_parameter               = 3
+     import_parameter_is_invalid       = 4
+     OTHERS                            = 5.
+  IF sy-subrc &lt;&gt; 0.
+    MESSAGE ID sy-msgid TYPE sy-msgty NUMBER sy-msgno
+            WITH sy-msgv1 sy-msgv2 sy-msgv3 sy-msgv4.
+  ENDIF.
+
+
+ENDFORM.                    " call_html_help
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Form  STRIPED_PATTERN</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+<font color ="#0000FF">*  --&gt;  p1        text</font>
+<font color ="#0000FF">*  &lt;--  p2        text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+FORM striped_pattern.
+  DATA: lt_nodes2select TYPE lvc_t_nkey,
+        l_key           TYPE lvc_nkey.
+
+  l_key = 1.
+  DO.
+    IF l_key &lt;= g_last_key.                               "#EC PORTABLE
+      APPEND l_key TO lt_nodes2select.
+    ELSE.
+      EXIT.
+    ENDIF.
+    l_key = l_key + 2.
+  ENDDO.
+
+  CALL METHOD tree1-&gt;set_selected_nodes
+    EXPORTING
+      it_selected_nodes = lt_nodes2select.
+  CALL METHOD tree1-&gt;frontend_update.
+
+ENDFORM.                    " STRIPED_PATTERN
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form call_tree</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM call_tree USING p_hierarchy_header .
+
+  CALL METHOD tree1-&gt;set_table_for_first_display
+    EXPORTING
+      is_hierarchy_header = p_hierarchy_header
+    CHANGING
+      it_fieldcatalog     = gt_fieldcatalog
+      it_outtab           = gt_fi010v. "gt_fi010v."empty & global 해야한대
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form create_container</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM create_container .
+  DATA: l_tree_container_name(30) TYPE c.
+
+  l_tree_container_name = 'CCONTAINER1'.
+
+  CREATE OBJECT g_custom_container
+      EXPORTING
+            container_name = l_tree_container_name
+      EXCEPTIONS
+            cntl_error                  = 1
+            cntl_system_error           = 2
+            create_error                = 3
+            lifetime_error              = 4
+            lifetime_dynpro_dynpro_link = 5.
+  IF sy-subrc &lt;&gt; 0.
+    MESSAGE x208(00) WITH 'ERROR'(100).
+  ENDIF.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form create_tree</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM create_tree .
+<font color ="#0000FF">* create tree control</font>
+  CREATE OBJECT tree1
+    EXPORTING
+        parent              = g_custom_container
+        node_selection_mode = cl_gui_column_tree=&gt;node_sel_mode_multiple
+        item_selection      = ' '
+        no_html_header      = 'X'
+        no_toolbar          = ' '
+    EXCEPTIONS
+        cntl_error                   = 1
+        cntl_system_error            = 2
+        create_error                 = 3
+        lifetime_error               = 4
+        illegal_node_selection_mode  = 5
+        failed                       = 6
+        illegal_column_name          = 7.
+  IF sy-subrc &lt;&gt; 0.
+    MESSAGE x208(00) WITH 'ERROR'.                          "#EC NOTEXT
+  ENDIF.
+ENDFORM.
+
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_fcat</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_fcat .
+   DATA: ls_fieldcatalog TYPE lvc_s_fcat.
+
+  LOOP AT gt_fieldcatalog INTO ls_fieldcatalog.
+    CASE ls_fieldcatalog-fieldname.
+<font color ="#0000FF">* 행숨기기</font>
+      WHEN 'ACCTCA' OR 'COMPNO' OR 'ACCDCMUNO' OR 'ACCTCL'. "or 'ITEMNO'.
+        ls_fieldcatalog-no_out = 'X'.
+
+<font color ="#0000FF">* 최대, 최소, 합, 평균.</font>
+      WHEN 'ACCPRICE'.
+        ls_fieldcatalog-do_sum = 'X'.
+        ls_fieldcatalog-h_ftype = 'SUM'. "max, avg 가능
+        ls_fieldcatalog-coltext = '금액'.
+        ls_fieldcatalog-currency = 'KRW'.
+        ls_fieldcatalog-decimals_o = '0'.
+     WHEN 'DCIND'.
+       ls_fieldcatalog-outputlen = '18'.
+       ls_fieldcatalog-coltext = '차(S)대(H)지시자'.
+     WHEN 'ACCOUNTNO' OR 'ACCTNM'  OR 'ACCTNM'.
+       ls_fieldcatalog-outputlen = '13'.
+     WHEN 'FIYEAR'.
+       ls_fieldcatalog-just = 'L'.
+       ls_fieldcatalog-outputlen = '10'.
+     WHEN 'CURRENCY'.
+       ls_fieldcatalog-outputlen = '8'.
+
+    ENDCASE.
+    MODIFY gt_fieldcatalog FROM ls_fieldcatalog.
+  ENDLOOP.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form refresh</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM refresh .
+  " 모든 폴더 닫기
+  CALL METHOD tree1-&gt;collapse_all_nodes.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_title</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_title .
+  DATA: lv_compnm TYPE zbbt_hr010-compnm.
+
+  SELECT SINGLE compnm FROM zbbt_hr010
+    INTO lv_compnm
+    WHERE compno EQ pa_co.
+
+  gv_title1 = pa_fi.
+  gv_title2 = lv_compnm.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form check_data</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM check_data .
+  DATA: lt_fi010v TYPE TABLE OF zbbv_fi010.
+
+  SELECT * FROM zbbv_fi010
+    INTO CORRESPONDING FIELDS OF TABLE lt_fi010v "lt_fi010v
+    UP TO g_max ROWS
+    WHERE compno EQ pa_co AND fiyear EQ pa_fi.
+
+  IF lt_fi010v IS INITIAL.
+   MESSAGE '일치하는 데이터가 없습니다.' TYPE 'S' DISPLAY LIKE 'E'. "type(1) + id(3)
+   LEAVE TO LIST-PROCESSING AND RETURN TO SCREEN 0.
+  ENDIF.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form check_co</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM check_co .
+  data: lv_compno type zbbt_fi030-compno.
+
+  IF pa_co is not INITIAL.
+    select single compno into lv_compno
+      from zbbt_fi030 where compno eq pa_co.
+
+      IF sy-subrc &lt;&gt; 0.
+        MESSAGE s105 with '회사번호' DISPLAY LIKE 'E'.
+      ENDIF.
+  ENDIF.
+ENDFORM.
+
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form check_fi</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM check_fi .
+  data: lv_fiyear type zbbt_fi030-fiyear.
+
+  IF pa_fi is not INITIAL.
+    select single fiyear into lv_fiyear
+      from zbbt_fi030 where fiyear eq pa_fi.
+
+      IF sy-subrc &lt;&gt; 0.
+        MESSAGE s105 with '회계연도' DISPLAY LIKE 'E'.
+      ENDIF.
+  ENDIF.
+ENDFORM.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

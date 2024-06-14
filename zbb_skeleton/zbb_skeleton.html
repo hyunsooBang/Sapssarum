@@ -1,0 +1,58 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZBB_SKELETON</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZBB_SKELETON</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZBB_SKELETON</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Report ZBB_SKELETON</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+REPORT ZBB_SKELETON. "message-id msgid.
+
+include <a href ="zbb_rskeleton_top.html">zbb_rskeleton_top</a>.
+include <a href ="zbb_rskeleton_c01.html">zbb_rskeleton_c01</a>.
+
+include <a href ="zbb_rskeleton_o01.html">zbb_rskeleton_o01</a>.
+include <a href ="zbb_rskeleton_i01.html">zbb_rskeleton_i01</a>.
+include <a href ="zbb_rskeleton_f01.html">zbb_rskeleton_f01</a>.
+
+<font color ="#0000FF">*--------------------------------------------</font>
+<font color ="#0000FF">* event</font>
+<font color ="#0000FF">*--------------------------------------------</font>
+
+INITIALIZATION.
+<font color ="#0000FF">*  gs_variant-report = sy-cprog.</font>
+AT SELECTION-SCREEN OUTPUT. "pbo
+
+START-OF-SELECTION. "실행 시
+  PERFORM get_data. "데이터베이스에서 조회조건을 기준으로 데이터 가져옴
+  PERFORM make_data. "갖고온 데이터 가공 및 처리
+  PERFORM display_data.
+
+<font color ="#0000FF">*GUI Texts</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* T100 --&gt; 타이틀을 설정하세요</font>
+
+
+<font color ="#0000FF">*Messages</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">* Message class: BC405_408</font>
+<font color ="#0000FF">*010   Error creating the container object</font>
+<font color ="#0000FF">*012   Error calling the method.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">* Message class: Hard coded</font>
+<font color ="#0000FF">*   일치하는 데이터가 없습니다.</font>
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

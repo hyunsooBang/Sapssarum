@@ -1,0 +1,145 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZBB_FI050_TOP</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZBB_FI050_TOP</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZBB_RSKELETON_TOP</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          ZBB_RSKELETON_TOP</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+
+TABLES: sflight, zbbt_fi010, zbbt_fi020, zbbt_fi030. "사용할 테이블 선언
+
+DATA: ok_code LIKE sy-ucomm.
+
+DATA: gs_sflight TYPE sflight,
+      gt_sflight LIKE TABLE OF gs_sflight.
+
+<font color ="#0000FF">*DATA: BEGIN OF gs_fi020v.</font>
+<font color ="#0000FF">*      INCLUDE STRUCTURE zbbv_fi020.</font>
+<font color ="#0000FF">*DATA: acctca_txt TYPE string,</font>
+<font color ="#0000FF">*      END OF gs_fi020v,</font>
+<font color ="#0000FF">*      gt_fi020v LIKE TABLE OF gs_fi020v.</font>
+
+DATA: BEGIN OF gs_fi020v,
+  accdcmuno TYPE zbbt_fi030-accdcmuno,
+  compno TYPE zbbt_fi030-compno,
+  pstdate TYPE zbbt_fi020-pstdate,
+  acctca TYPE zbbt_fi010-acctca,
+  acctca_txt type string,
+  accountno TYPE zbbt_fi030-accountno,
+  acctnm TYPE zbbt_fi010-acctnm,
+  acctype TYPE zbbt_fi020-acctype,
+  acctype_txt type string,
+  matno TYPE zbbt_fi030-matno,
+  purordno TYPE zbbt_fi030-purordno,
+  venno TYPE zbbt_fi030-venno,
+  orderno TYPE zbbt_fi030-orderno,
+  custno TYPE zbbt_fi030-custno,
+  accprice TYPE zbbt_fi030-accprice,
+  currency TYPE zbbt_fi020-currency,
+  acctxt TYPE zbbt_fi030-acctxt,
+  fiyear type zbbt_fi020-fiyear,
+  period type zbbt_fi030-period,
+<font color ="#0000FF">*  acctca_txt TYPE string,</font>
+  END OF gs_fi020v,
+      gt_fi020v LIKE TABLE OF gs_fi020v.
+
+
+DATA: go_alv_grid TYPE REF TO cl_gui_alv_grid, "클래스 참조변수 선언
+      go_docking  TYPE REF TO cl_gui_docking_container, "global object 선언
+      go_container TYPE REF TO cl_gui_custom_container.
+
+<font color ="#0000FF">*DATA: gs_variant TYPE disvariant,</font>
+<font color ="#0000FF">*      gv_save.</font>
+" split용
+<font color ="#0000FF">*DATA : gc_grid TYPE REF TO cl_gui_alv_grid.</font>
+<font color ="#0000FF">*DATA : gc_grid2 TYPE REF TO cl_gui_alv_grid.</font>
+<font color ="#0000FF">*DATA : gc_docking TYPE REF TO cl_gui_docking_container.</font>
+<font color ="#0000FF">*DATA : gc_split TYPE REF TO cl_gui_splitter_container.</font>
+<font color ="#0000FF">*DATA : gc_container TYPE REF TO cl_gui_container.</font>
+<font color ="#0000FF">*DATA : gc_container2 TYPE REF TO cl_gui_container.</font>
+
+" layout을 위해 필요한 data
+DATA: gs_layout      TYPE lvc_s_layo.
+
+" cell color
+DATA: gs_field_color TYPE lvc_s_scol.
+
+"Sort
+DATA : gs_sort  TYPE lvc_s_sort.
+
+" field catalog
+DATA : gs_fcat TYPE lvc_s_fcat,
+       gt_fcat TYPE lvc_t_fcat.
+
+
+<font color ="#0000FF">* event class</font>
+<font color ="#0000FF">*CLASS lcl_event DEFINITION DEFERRED.</font>
+<font color ="#0000FF">*DATA : go_event TYPE REF TO lcl_event.</font>
+
+DATA: r1 VALUE 'X',
+      r2,
+      r3.
+
+DATA: nom TYPE string,
+      mom TYPE string,
+      noo TYPE string,
+      moo TYPE string,
+
+      gv_fiyear TYPE string,
+      gv_compno type string,
+      gv_dat1 TYPE string,
+      gv_dat2 TYPE string,
+      gv_accno TYPE string,
+      gv_matno TYPE string,
+      gv_orderno TYPE string,
+      gv_wave TYPE string,
+      gv_venno TYPE string.
+
+
+DATA: gv_acctca TYPE string,
+      gv_period TYPE string,
+      gv_where_co type string,
+      gv_where_no TYPE string,
+      gv_where_date TYPE string,
+      gv_where_mat TYPE string,
+      gv_where_ven TYPE string,
+      gv_where_ono TYPE string,
+
+      gv_title TYPE string.
+
+<font color ="#0000FF">* screen 예시</font>
+
+SELECTION-SCREEN BEGIN OF BLOCK b WITH FRAME TITLE TEXT-t00.
+   SELECTION-SCREEN COMMENT /1(79) TEXT-t02 MODIF ID opt .
+  PARAMETERS     : pa_req TYPE c RADIOBUTTON GROUP r1 USER-COMMAND rdo DEFAULT 'X',    "생산오더 생성
+                   pa_opt TYPE c RADIOBUTTON GROUP r1.
+SELECTION-SCREEN END OF BLOCK b.
+
+SELECTION-SCREEN BEGIN OF BLOCK bl WITH FRAME TITLE TEXT-t01.
+  SELECTION-SCREEN SKIP 1.
+  PARAMETERS: pa_fi LIKE zbbt_fi020-fiyear MODIF ID req DEFAULT '2024' OBLIGATORY MEMORY ID memid,
+              pa_co LIKE zbbt_fi020-compno MODIF ID req DEFAULT '2000' OBLIGATORY MEMORY ID memid,
+              pa_mo TYPE zbbt_fi020-period MODIF ID opt as LISTBOX VISIBLE LENGTH 5.
+  PARAMETERS:
+              pa_ac LIKE zbbt_fi030-accdcmuno MODIF ID opt ,
+              pa_ma LIKE zbbt_fi030-matno MODIF ID opt,
+              pa_ve LIKE zbbt_fi030-venno MODIF ID opt,
+              pa_od LIKE zbbt_fi030-orderno MODIF ID opt.
+  SELECTION-SCREEN SKIP 1 .
+  SELECT-OPTIONS: so_da FOR zbbt_fi020-pstdate MODIF ID opt.
+  SELECTION-SCREEN SKIP 1.
+
+SELECTION-SCREEN END OF BLOCK bl.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>
